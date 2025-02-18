@@ -1,4 +1,4 @@
-
+global M
 ex=    [[0, 0, 0, 0, 0],
            [0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0],
@@ -305,7 +305,7 @@ def addOut(x,y,couleur): #ajoute a une liste de liste les boules hors jeu
         
         
 
-creativeMove(4,4)
+#creativeMove(4,4)
 
 setMat([[0, 0, 0, 0, -1],
            [0, 0, 0, 0, -1, 0],
