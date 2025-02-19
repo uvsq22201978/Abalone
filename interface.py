@@ -1,20 +1,28 @@
 import tkinter as tk
-from idlelib.codecontext import get_spaces_firstword
 from tkinter import ttk
 import pygame
 import time
 import math
 import données
+import random
 
-M=          [[0, 0, 0, 0, -1],
-           [0, 0, 0, 0, -1, 0],
-          [0, 0, 0, 0, 1, 0, 0],
-         [0, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1, 1,-1, -1],
+
+
+
+global selectedOnClick
+
+
+
+selectedOnClick=False
+M=        [[-1, -1, -1, -1, -1],
+          [0, -1, -1, -1, -1, 0],
+         [0, 0, -1, -1, -1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
          [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0]]
+          [0, 0, 1, 1, 1, 0, 0],
+           [0, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1]]
 height=500
 width=500
 main_bg="#2C3E50"
@@ -52,7 +60,7 @@ def logo(canvas): # affiche le logo
 
 
 
-def demarrage():
+def demarrage(): #lance le menu de démarrage
     global animStart
     animStart=True # statut de l'animation du bouton start #cette manip est inutile mais, si supprimée penser à modifier les appels aux variables respectives
     pygame.mixer.music.load("loop-menu.mp3")
@@ -176,7 +184,7 @@ def place_hole(canvas,points): # creation des emplacements des boules en fonctio
         cpt2+=1
 
 
-def aff(M):
+def aff(M,event=None):
     try: #on efface les cases s'ils elles existent
         canvas.delete("case")
     except: #sinon on ne lève pas d'erreur
@@ -187,11 +195,11 @@ def aff(M):
             for j in range(len(M[i])):
                 canvas.delete(f"case_{i}_{j}")
                 if M[i][j]==1:
-                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="black",outline="black",tags=("case",f"{i}{j}"))
+                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="white",outline="black",tags=("case",f"{i}{j}","black"))
                 elif M[i][j]==0:
                     canvas.create_rectangle(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="white",outline="black",tags=("case",f"{i}{j}"))
                 else:
-                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="white",outline="black",tags=("case",f"{i}{j}"))
+                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="black",outline="black",tags=("case",f"{i}{j}","white"))
 
 def getCoord(i,j): #renvoie les coordonnées de la case (x,y)
     return caseXY[i][j]
@@ -205,28 +213,99 @@ def emptygrid(): #vide la grille du jeu
     canvas.create_polygon(points, fill="blue")
     place_hole(canvas, points)
 
+def checkInCase(a,b): # verifie si on est bien dans une case
+    for i in range(len(caseXY)):
+        for j in range(len(caseXY[i])):
+            if caseXY[i][j][0] < a < caseXY[i][j][2] and caseXY[i][j][1] < b < caseXY[i][j][3]:
+                return True
+    return False
+
+def getCase(event): #donne les indices des cases dans lesquelles on se situe avec une tolérance
+    toléranceLower=0.98
+    toléranceHigher=1.02
+    for i in range(len(caseXY)):
+        for j in range(len(caseXY[i])):
+            if caseXY[i][j][0]*toléranceLower <= event.x <= caseXY[i][j][2]*toléranceHigher and caseXY[i][j][1]*toléranceLower <= event.y <= caseXY[i][j][3]*toléranceHigher:
+                return (i,j)
+            else:
+
+                #print(caseXY)
+                #print(f"{caseXY[i][j][0]} <= {event.x} <= {caseXY[i][j][2]} and {caseXY[i][j][1]} <= {event.y} <= {caseXY[i][j][3]}")
+                #canvas.delete(f"case_{i}_{j}")
+                #x1, y1, x2, y2 = getCoord(i, j)
+                #canvas.create_oval(x1, y1, x2, y2, fill="black", outline="black", tags=("case", f"{i}{j}"))
+                pass
+
 
 def mainCanvas(fen,longueur,largeur): # creation du plateau de jeu
     global canvas,height,width
     height=longueur
     width=largeur
-
-    def getCase(event):
-        for i in range(len(caseXY)):
-            for j in range(len(caseXY[i])):
-                if caseXY[i][j][0] < event.x < caseXY[i][j][2] and caseXY[i][j][1] < event.y < caseXY[i][j][3]:
-                    print(f"case : {i} , {j}")
-                    canvas.delete(f"case_{i}_{j}")
-                    x1, y1, x2, y2 = getCoord(i, j)
-                    canvas.create_oval(x1, y1, x2, y2, fill="black", outline="black", tags=("case", f"{i}{j}"))
-
-
     canvas = tk.Canvas(fen,height=largeur,width=largeur,background="red")
     points=calculer_points_hexagone(largeur/2,largeur/2,largeur/2.5,90)
     canvas.create_polygon(points,fill="blue")
     place_hole(canvas,points)
-    canvas.tag_bind("case","<Button-1>",getCase)
     canvas.pack()
+
+def aff_selection(event): #crée un cercle de selection
+    global selected
+    if not selectedOnClick:
+        selected=True
+        x=event.x
+        y=event.y
+        try:
+            (i,j)=getCase(event)
+            x1,y1,x2,y2=getCoord(i,j)
+            canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="red",width=2,tags=("selection"))
+            canvas.tag_lower("selection", "case") #mise en arrière plan du cercle de selection afin d'éviter les conflits entre leave et enter, et éviter les plantages de tkinter
+
+        except:
+            pass
+
+
+def supprimer_selection(event): # supprime le cercle de sélection s'il existe
+    global selected
+    if selected:
+        selected=False
+        canvas.delete("selection")
+
+def onClick(event): # creation du cercle de selection avec clique
+    try:
+        canvas.delete("selection")
+        (i, j) = getCase(event)
+        x1, y1, x2, y2 = getCoord(i, j)
+        canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="green", width=2, tags=("selectionClick"))
+        canvas.tag_lower("selectionClick","case")
+    except:
+        pass
+
+def delOnClick(event): #supression du cercle de selection avec clique
+    try:
+        canvas.delete("selectionClick")
+    except:
+        pass
+
+def select_active(): #active la selection en survol autour des cases
+    canvas.tag_bind("case","<Enter>",aff_selection)
+    canvas.tag_bind("case","<Leave>",supprimer_selection)
+    canvas.tag_bind("case","<Button-1>",onClick)
+    canvas.bind("<Button-3>",delOnClick)
+
+
+def play():
+    global turn
+    print("play")
+    turn = random.randint(1,2)
+    canvas.create_text(larg/2,long*0.1,text=f"joueur {turn} à toi de jouer")
+    select_active()
+    """while True:
+
+        if turn==1:
+            canvas.focus("white")
+            canvas.tag_bind()
+            pass
+"""
+
 
 
 def resolution_window(): #fenêtre de demande de résolution
@@ -238,8 +317,7 @@ def resolution_window(): #fenêtre de demande de résolution
         res.destroy()
         fen.geometry(f"{choixVal.get()}")
         mainCanvas(fen,int(choixVal.get().split("x")[1]),int(choixVal.get().split("x")[1]))
-        test = tk.Button(fen,text="test",command=aff(M))
-        test.pack(side="right")
+
 
 
     choix = ["1920x1080", "1280x720", "800x600", "640x480", "480x360", "320x240"]
@@ -248,7 +326,7 @@ def resolution_window(): #fenêtre de demande de résolution
     res.geometry("300x150")
     res.resizable(False,False)
     choixVal = tk.StringVar()
-    choixVal.set(choix[0])
+    choixVal.set(choix[1])
 
 
     valide = tk.Button(res,text="valider",command=changeRes)
@@ -256,7 +334,11 @@ def resolution_window(): #fenêtre de demande de résolution
     labtest = tk.Label(res,textvariable=choixVal)
 
     liste = ttk.Combobox(res,textvariable=choixVal, values=choix,state="readonly") # barre de séléction pour les résolutions
+    test = tk.Button(fen, text="test",command=lambda: aff(M))
+    test2 = tk.Button(fen, text="play",command=lambda: play())
 
+    test2.pack(side="left")
+    test.pack(side="right")
     valide.pack(side="bottom")
     label.pack(side="top")
     liste.pack()
