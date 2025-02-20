@@ -1,16 +1,9 @@
-global M
-ex=    [[0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, 1, -1],
-         [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0]]
+global M,selectBouleList,team,out,matrice
+selectBouleList=[]
 
-
-M=          [[0, 0, 0, 0, -1],
+out=[[],[],[],[],[],[]]
+team=1
+ex=          [[0, 0, 0, 0, -1],
            [0, 0, 0, 0, -1, 0],
           [0, 0, 0, 0, 1, 0, 0],
          [0, 0, 0, 0, 1, 0, 0, 0],
@@ -21,19 +14,23 @@ M=          [[0, 0, 0, 0, -1],
             [0, 0, 0, 0, 0]]
 
 
-global team,out,matrice
-out=[[],[],[],[],[],[]]
-team=1
-
 
 
 def setMat(M):
     global matrice
     matrice = M
     
-setMat(M)
+setMat([[0, 0, 0, 0, -1],
+           [0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 0, 0, 0, 0],
+         [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0,0,0],
+         [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0]])
 
-def afficheMat(matrice): #affiche la matrice dnas la console sous la forme de grille Abalone
+def afficheMat(matrice): #affiche la matrice dans la console sous la forme de grille Abalone
     for i in range(5):        
         print(" " * len(matrice[4-i]),matrice[i])
     for i in range(5,9):
@@ -60,87 +57,89 @@ def setOut(L): #définir la liste des boules qui sont hors jeu
     global out
     out=L
 
-        
-#obsolète / a mettre à jour
-def move(x,y,i,j): # déplace la boule aux coordonnées i,j dans la direction x,y
+
+def move(x,y,i,j,select=False): # déplace la boule aux coordonnées i,j dans la direction x,y
     global matrice
-    if y == 0: # cas déplacement lattérale
-        if x == 1:
-            matrice[i][j+1],matrice[i][j]=matrice[i][j],matrice[i][j+1]
-        elif x == -1:
-            matrice[i][j-1],matrice[i][j]=matrice[i][j],matrice[i][j-1]
+    #afficheMat(matrice)
+    zone = getZone(i)
+    x, y = moveZ(x, y, zone)
+    """if isBoule(i, j, x, y):
+        sumito(i, j, x, y)"""
+    if select == False:
+        matrice[i][j], matrice[i + y][j + x] = matrice[i + y][j + x], matrice[i][j]
     else:
-        zone=getZone(i)
-        if zone==0:
-            x,y = moveZ0(x,y)
-            matrice[i+y][j+x],matrice[i][j]=matrice[i][j],matrice[i+y][j+x]
-            i,j=i+y,j+x
-        elif zone==1:
-            x,y = moveZ1(x,y)
-            matrice[i+y][j+x],matrice[i][j]=matrice[i][j],matrice[i+y][j+x]
-            i,j=i+y,j+x
-        elif zone==-1:
-            x,y = moveZ2(x,y)
-            matrice[i+y][j+x],matrice[i][j]=matrice[i][j],matrice[i+y][j+x]
-            i,j=i+y,j+x
-        
-    afficheMat(matrice)
+        return x+j,y+i
 
 
 def creativeMove(i,j) :#permet de déplacer une boule librement afin de tester les différentes fonctionnalités
-    
+    global matrice
     x = int(input("déplacement x: "))
     y = int(input("déplacement y:"))
+    possible = True
     afficheMat(matrice)
     while x != 0 or y!=0:
-        
-        if y == 0: # cas déplacement lattérale
-        
-            if x == 1:
-                
-                if isBoule(i, j, x, y):
-                    sumito(i,j,x,y)
-                j+=1
-                
-            elif x == -1:
-                if isBoule(i, j, x, y):
-                    sumito(i,j,x,y)
-                j-=1
-                
-                
-        else: # déplacement digonal
-            zone=getZone(i)
-            
-            if zone==0: #milieu
-                x,y = moveZ0(x,y)
-                if isBoule(i, j, x, y):
-                    sumito(i,j,x,y)
-                i,j=i+y,j+x
-                
-            elif zone==1:
-                x,y = moveZ1(x,y)
-                if isBoule(i, j, x, y):
-                    sumito(i,j,x,y)
-                i,j=i+y,j+x
-                
-                
-            elif zone==-1:
-                x,y = moveZ2(x,y)
-                if isBoule(i, j, x, y):
-                    sumito(i,j,x,y)
-                i,j=i+y,j+x
-                
-                
+
+        zone=getZone(i)
+        x,y = moveZ(x,y,zone)
+        if isBoule(i, j, x, y):
+            sumito(i,j,x,y)
+        matrice[i][j],matrice[i+y][j+x]=matrice[i+y][j+x],matrice[i][j]
+        resetBouleList()
+        addSelectBouleList(i+y,j+x)
+        getPossibilites()
+        print(possibilites)
+        j=j+x
+        i=i+y
         afficheMat(matrice)
-                
-            
 
         x = int(input("déplacement x: "))
         y = int(input("déplacement y:"))
         
+def moveZ(x,y,zone):
+    def moveZ0(x,y):  # donne les coordonnées relatif aux déplacements des boules qui se situent au milieu de la grille
+        if x < 0 and y < 0:  # cas bas gauche
+            return (-1, 1)
+        elif x > 0 and y < 0:  # cas bas droite
+            return (0, 1)
+        elif x < 0 and y > 0:  # cas haut gauche
+            return (-1, -1)
+        elif x > 0 and y > 0:  # cas haut droite
+            return (0, -1)
 
-        
-def moveZ0(x,y): # donne les coordonnées relatif aux déplacements des boules qui se situent au milieu de la grille        
+
+    def moveZ1(x,y):  # donne les coordonnées relatif aux déplacements des boules qui se situent en bas de la grille
+        if x < 0 and y < 0:  # cas bas gauche
+            return (-1, 1)
+        elif x > 0 and y < 0:  # cas bas droite
+            return (0, 1)
+        elif x < 0 and y > 0:  # cas haut gauche
+            return (0, -1)
+        elif x > 0 and y > 0:  # cas haut droite
+            return (1, -1)
+
+
+    def moveZ2(x,y):  # donne les coordonnées relatif aux déplacements des boules qui se situent en haut de la grille
+        if x < 0 and y < 0:  # cas bas gauche
+            return (0, 1)
+        elif x > 0 and y < 0:  # cas bas droite
+            return (1, 1)
+        elif x < 0 and y > 0:  # cas haut gauche
+            return (-1, -1)
+        elif x > 0 and y > 0:  # cas haut droite
+            return (0, -1)
+    if y==0:
+        return (x,y)
+    match zone:
+        case 0:
+            return moveZ0(x,y)
+        case 1:
+            return moveZ1(x,y)
+        case -1:
+            return moveZ2(x,y)
+
+
+
+"""def moveZ0(x,y): # donne les coordonnées relatif aux déplacements des boules qui se situent au milieu de la grille
         if x<0 and y<0: #cas bas gauche
             return (-1,1)
         elif x>0 and y<0: #cas bas droite
@@ -157,11 +156,11 @@ def moveZ1(x,y): # donne les coordonnées relatif aux déplacements des boules q
         elif x>0 and y<0: #cas bas droite
             return (0,1)
         elif x<0 and y>0: #cas haut gauche
-            return (x,-1)
+            return (0,-1)
         elif x>0 and y>0: #cas haut droite
             return (1,-1)
         
-def moveZ2(x,y): # donne les coordonnées relatif aux déplacements des boules qui se situent en haut de la grille        
+def moveZ2(x,y): # donne les coordonnées relatif aux déplacements des boules qui se situent en haut de la grille
         if x<0 and y<0: #cas bas gauche
             return (0,1)
         elif x>0 and y<0: #cas bas droite
@@ -169,12 +168,10 @@ def moveZ2(x,y): # donne les coordonnées relatif aux déplacements des boules q
         elif x<0 and y>0: #cas haut gauche
             return (-1,-1)
         elif x>0 and y>0: #cas haut droite
-            return (0,-1)
+            return (0,-1)"""
 
-                
-        
-        
-def isBoule(i,j,x,y,): # Observe s'il y a une boule aux coordonées i,j de l'équipe "team"
+
+def isBoule(i,j,x=0,y=0): # Observe s'il y a une boule aux coordonées i,j de l'équipe "team"
     global matrice
     return matrice[i+y][j+x] == -1 or matrice[i+y][j+x] == 1
 
@@ -193,35 +190,7 @@ def getZone(i): # Donne la zone de la grille dans la quelle se situe la boule (h
 #ancienne version
 
 
-"""def sumito(i,j,x,y,white,black): #vérifie s'il y a un sumito, x,y représente le sens de déplacement de la boule aux coo i,j 
-    global sx,sy #coo de la dernière boule
-    if matrice[i][j] == 1: # actualise les compteur en fonction des boules trouvées
-        white+=1
-    else:
-        black+=1
-    
-    if (team == 1 and black != 0) and matrice[i][j] == 1: #si on tombe sur une boule de notre équipe suite à un enchainement de boule adverse alors le sumito est faux
-        return False
-    elif (team == -1 and white != 0) and matrice[i][j] == -1:
-        return False
-    else:
-        if (i+y<0 or i+y>8) or (x+j<0 or x+j>(len(matrice[i])-1)): # si une boule se retrouve out
-            if white<=3 and black<white and team==1:
-                return True
-            elif black<=3 and black>white and team==-1:
-                return True
-            else:
-                return False
-        elif (i+y>=0 or i+y<=8) or (x+j>=0 and x+j<=(len(matrice[i])-1)): #on est bien dans la grille
-            if matrice[i+y][j+x] == 0 and (white<=3 and black<white and team==1) and black!=0: #on tombe sur une case vide
-            
-                return True
-            elif matrice[i+y][j+x] == 0 and (black<=3 and black>white and team==-1) and white!=0:
-                return True
-            else: #cas par défaut on tombe sur une autre boule
-                return sumito(i+y,j+x,x,y,white,black)"""
-            
-            
+
 def getSumitoList(i,j,x,y): # Donne la liste des éléments dans la direction x,y à partir de la position i,j
     L=[] 
     while True:
@@ -265,10 +234,8 @@ def sumitoCheck(L): #verifie à partir de la sumitoList si un sumito est detect�
  
 
            
-def getSumitoCase(L): #permet de savoir si une boule va être éjecté si c'est un simple déplacement de plusieurs boules
+def getSumitoCase(L): #permet de savoir si une boule va être éjecté ou si c'est un simple déplacement de plusieurs boules
     return L[len(L)-1]
-
-
 
 
     
@@ -290,7 +257,54 @@ def sumito(i,j,x,y): # effectue les déplacement en cas de sumito
                 a1,b1,c1=L[-(i+1)]
                 matrice[a][b],matrice[a1][b1]=matrice[a1][b1],matrice[a][b] # décale les positions des boules en cas de out            
 
-            
+def addSelectBouleList(i,j):#on ajoute la boule séléctionné à la liste de boules sélectionnées
+    global selectBouleList,possibilites
+    selectBouleList.append((i,j)) # [(cordy,cordx),(etcy,etcx),...]
+    possibilites=[]
+
+def resetBouleList():
+    global selectBouleList
+    selectBouleList=[]
+
+def getPossibilites(): # permet d'obtenir la liste des mouvements possible pour une boule selectionnée
+    global possibilites,select_BouleList
+    if len(selectBouleList)==1:
+        for i in range(-1,2):
+            for j in range(-1,2):
+                if j!=0:
+                    zone=getZone(selectBouleList[0][0])
+                    x,y=moveZ(j,i,zone)
+                    if not(isOut(selectBouleList[0][1] + x, selectBouleList[0][0] + y)):
+                        if not(isBoule(selectBouleList[0][0],selectBouleList[0][1],x,y)) :
+                            possibilites.append((i,j))
+    return possibilites
+
+
+
+def isOut(x,y): # vérifie si on est toujours dans la grille
+    if 0 <= y <= 8:
+        if y == 0:
+            return not (0 <= x <= 4)
+        elif y == 1:
+            return not (0 <= x <= 5)
+        elif y == 2:
+            return not (0 <= x <= 6)
+        elif y == 3:
+            return not (0 <= x <= 7)
+        elif y == 4:
+            return not (0 <= x <= 8)
+        elif y == 5:
+            return not (0 <= x <= 7)
+        elif y == 6:
+            return not (0 <= x <= 6)
+        elif y == 7:
+            return not (0 <= x <= 5)
+        elif y == 8:
+            return not (0 <= x <= 4)
+    return True
+
+
+
 
 def addOut(x,y,couleur): #ajoute a une liste de liste les boules hors jeu
     global out
@@ -303,16 +317,8 @@ def addOut(x,y,couleur): #ajoute a une liste de liste les boules hors jeu
     elif x>0 and y>0: #cas haut droite
         out.append(couleur)
         
-        
+"""print(moveZ(1,0,-1))
+creativeMove(4,4)"""
 
-#creativeMove(4,4)
 
-setMat([[0, 0, 0, 0, -1],
-           [0, 0, 0, 0, -1, 0],
-          [0, 0, 0, 0, 1, 0, 0],
-         [0, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1, 1,-1, 1],
-         [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0]])
+

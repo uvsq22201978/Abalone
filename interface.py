@@ -14,7 +14,19 @@ global selectedOnClick
 
 
 selectedOnClick=False
-M=        [[-1, -1, -1, -1, -1],
+M=   [[0, 0, 0, 0, -1],
+           [0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 0, 0, 0, 0],
+         [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0,0,0],
+         [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0]]
+
+
+
+"""[[-1, -1, -1, -1, -1],
           [0, -1, -1, -1, -1, 0],
          [0, 0, -1, -1, -1, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0],
@@ -22,7 +34,7 @@ M=        [[-1, -1, -1, -1, -1],
          [0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 1, 1, 1, 0, 0],
            [0, 1, 1, 1, 1, 0],
-            [1, 1, 1, 1, 1]]
+            [1, 1, 1, 1, 1]"""
 height=500
 width=500
 main_bg="#2C3E50"
@@ -221,8 +233,8 @@ def checkInCase(a,b): # verifie si on est bien dans une case
     return False
 
 def getCase(event): #donne les indices des cases dans lesquelles on se situe avec une tolérance
-    toléranceLower=0.98
-    toléranceHigher=1.02
+    toléranceLower=0.99
+    toléranceHigher=1.01
     for i in range(len(caseXY)):
         for j in range(len(caseXY[i])):
             if caseXY[i][j][0]*toléranceLower <= event.x <= caseXY[i][j][2]*toléranceHigher and caseXY[i][j][1]*toléranceLower <= event.y <= caseXY[i][j][3]*toléranceHigher:
@@ -269,19 +281,27 @@ def supprimer_selection(event): # supprime le cercle de sélection s'il existe
         selected=False
         canvas.delete("selection")
 
+def createPos(event): #on crée les emplacements possibles
+    possibilites=données.getPossibilites()
+    indicei,indicej=getCase(event)
+    for i in range(len(possibilites)):
+        x,y=données.move(possibilites[i][1],possibilites[i][0],indicei,indicej,True)
+        x1,y1,x2,y2=getCoord(y,x)
+        canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="orange",width=2,tags=("possibilites"))
+
 def onClick(event): # creation du cercle de selection avec clique
-    try:
-        canvas.delete("selection")
-        (i, j) = getCase(event)
-        x1, y1, x2, y2 = getCoord(i, j)
-        canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="green", width=2, tags=("selectionClick"))
-        canvas.tag_lower("selectionClick","case")
-    except:
-        pass
+    canvas.delete("selection","possibilites")
+    (i, j) = getCase(event)
+    x1, y1, x2, y2 = getCoord(i, j)
+    canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="green", width=2, tags=("selectionClick"))
+    canvas.tag_lower("selectionClick","case")
+    données.addSelectBouleList(i,j)
+    createPos(event)
 
 def delOnClick(event): #supression du cercle de selection avec clique
     try:
-        canvas.delete("selectionClick")
+        canvas.delete("selectionClick","possibilites")
+        données.resetBouleList()
     except:
         pass
 
