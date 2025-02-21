@@ -1,34 +1,14 @@
 global M,selectBouleList,team,out,matrice
 selectBouleList=[]
+multi_possibilites=[]
 
 out=[[],[],[],[],[],[]]
 team=1
-ex=          [[0, 0, 0, 0, -1],
-           [0, 0, 0, 0, -1, 0],
-          [0, 0, 0, 0, 1, 0, 0],
-         [0, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1, 1,-1, -1],
-         [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0]]
 
-
-
-
-def setMat(M):
+def setMat(mat):
     global matrice
-    matrice = M
-    
-setMat([[0, 0, 0, 0, -1],
-           [0, 0, 0, 0, 0, 0],
-          [0, 0, 1, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0,0,0],
-         [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0]])
+    matrice = mat
+
 
 def afficheMat(matrice): #affiche la matrice dans la console sous la forme de grille Abalone
     for i in range(5):        
@@ -57,10 +37,14 @@ def setOut(L): #définir la liste des boules qui sont hors jeu
     global out
     out=L
 
+def moveWithij(x1,y1,x2,y2): #déplace a partir des indices seulements
+    global matrice
+    matrice[y1][x1], matrice[y2][x2] = matrice[y2][x2], matrice[y1][x1]
+
+
 
 def move(x,y,i,j,select=False): # déplace la boule aux coordonnées i,j dans la direction x,y
     global matrice
-    #afficheMat(matrice)
     zone = getZone(i)
     x, y = moveZ(x, y, zone)
     """if isBoule(i, j, x, y):
@@ -138,43 +122,9 @@ def moveZ(x,y,zone):
             return moveZ2(x,y)
 
 
-
-"""def moveZ0(x,y): # donne les coordonnées relatif aux déplacements des boules qui se situent au milieu de la grille
-        if x<0 and y<0: #cas bas gauche
-            return (-1,1)
-        elif x>0 and y<0: #cas bas droite
-            return (-1,1)
-        elif x<0 and y>0: #cas haut gauche
-            return (-1,-1)
-        elif x>0 and y>0: #cas haut droite
-            return (0,-1)
-        
-        
-def moveZ1(x,y): # donne les coordonnées relatif aux déplacements des boules qui se situent en bas de la grille        
-        if x<0 and y<0: #cas bas gauche
-            return (-1,1)
-        elif x>0 and y<0: #cas bas droite
-            return (0,1)
-        elif x<0 and y>0: #cas haut gauche
-            return (0,-1)
-        elif x>0 and y>0: #cas haut droite
-            return (1,-1)
-        
-def moveZ2(x,y): # donne les coordonnées relatif aux déplacements des boules qui se situent en haut de la grille
-        if x<0 and y<0: #cas bas gauche
-            return (0,1)
-        elif x>0 and y<0: #cas bas droite
-            return (1,1)
-        elif x<0 and y>0: #cas haut gauche
-            return (-1,-1)
-        elif x>0 and y>0: #cas haut droite
-            return (0,-1)"""
-
-
 def isBoule(i,j,x=0,y=0): # Observe s'il y a une boule aux coordonées i,j de l'équipe "team"
     global matrice
     return matrice[i+y][j+x] == -1 or matrice[i+y][j+x] == 1
-
 
 
 
@@ -185,11 +135,9 @@ def getZone(i): # Donne la zone de la grille dans la quelle se situe la boule (h
         return 0
     else :
         return 1
-    
-    
-#ancienne version
 
-
+def getMatrice():
+    return matrice
 
 def getSumitoList(i,j,x,y): # Donne la liste des éléments dans la direction x,y à partir de la position i,j
     L=[] 
@@ -259,15 +207,19 @@ def sumito(i,j,x,y): # effectue les déplacement en cas de sumito
 
 def addSelectBouleList(i,j):#on ajoute la boule séléctionné à la liste de boules sélectionnées
     global selectBouleList,possibilites
-    selectBouleList.append((i,j)) # [(cordy,cordx),(etcy,etcx),...]
+    selectBouleList.append((i,j)) # [(indicey,indicex),(etcy,etcx),...]
     possibilites=[]
 
 def resetBouleList():
-    global selectBouleList
+    global selectBouleList,multi_possibilites
     selectBouleList=[]
+    multi_possibilites = []
+
+def getBouleList():
+    return selectBouleList
 
 def getPossibilites(): # permet d'obtenir la liste des mouvements possible pour une boule selectionnée
-    global possibilites,select_BouleList
+    global possibilites,select_BouleList,multi_possibilites
     if len(selectBouleList)==1:
         for i in range(-1,2):
             for j in range(-1,2):
@@ -277,7 +229,25 @@ def getPossibilites(): # permet d'obtenir la liste des mouvements possible pour 
                     if not(isOut(selectBouleList[0][1] + x, selectBouleList[0][0] + y)):
                         if not(isBoule(selectBouleList[0][0],selectBouleList[0][1],x,y)) :
                             possibilites.append((i,j))
+    else:
+        multi_possibilites=[]
+        print(selectBouleList)
+        for a in range(len(selectBouleList)):
+            possibilites=[]
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if j != 0:
+                        zone = getZone(selectBouleList[a][0])
+                        x, y = moveZ(j, i, zone)
+                        if not (isOut(selectBouleList[a][1] + x, selectBouleList[a][0] + y)):
+                            if not (isBoule(selectBouleList[a][0], selectBouleList[a][1], x, y)):
+                                possibilites.append((i, j))
+            multi_possibilites.append(possibilites)
+        print(multi_possibilites)
     return possibilites
+
+
+
 
 
 
@@ -321,4 +291,23 @@ def addOut(x,y,couleur): #ajoute a une liste de liste les boules hors jeu
 creativeMove(4,4)"""
 
 
+setMat([[0, 0, 0, 0, -1],
+           [0, 0, 0, 0, 0, 0],
+          [0, 0, 1, 0, 0, 0, 0],
+         [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0,0,0],
+         [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0]])
 
+
+ex=          [[0, 0, 0, 0, -1],
+           [0, 0, 0, 0, -1, 0],
+          [0, 0, 0, 0, 1, 0, 0],
+         [0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1,-1, -1],
+         [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0]]

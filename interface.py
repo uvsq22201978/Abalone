@@ -9,23 +9,11 @@ import random
 
 
 
-global selectedOnClick
+global selected,selectedOnClick
 
 
-
+nbselected=0
 selectedOnClick=False
-M=   [[0, 0, 0, 0, -1],
-           [0, 0, 0, 0, 0, 0],
-          [0, 0, 1, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0,0,0],
-         [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0]]
-
-
-
 """[[-1, -1, -1, -1, -1],
           [0, -1, -1, -1, -1, 0],
          [0, 0, -1, -1, -1, 0, 0],
@@ -179,7 +167,7 @@ def place_hole(canvas,points): # creation des emplacements des boules en fonctio
         for i in range(5+j):
             x1=minX+(espacementx+taillexcarre)*i
             x2=minX+(espacementx+taillexcarre)*i+taillexcarre
-            canvas.create_rectangle(x1,y1,x2,y2,fill="white",outline="black",tags=("case",f"case_{j}_{i}"))
+            canvas.create_oval(x1,y1,x2,y2,fill="brown",outline="black",tags=("case",f"case_{j}_{i}"))
             caseXY[j].append((x1,y1,x2,y2))
     cpt2 = 0
     for j in range(5,9):
@@ -191,12 +179,13 @@ def place_hole(canvas,points): # creation des emplacements des boules en fonctio
         for i in range((8-cpt2)):
             x1 = minX + (espacementx + taillexcarre) * i
             x2 = minX + (espacementx + taillexcarre) * i + taillexcarre
-            canvas.create_rectangle(x1, y1, x2, y2, fill="white", outline="black",tags=("case",f"case_{j}_{i}"))
+            canvas.create_oval(x1, y1, x2, y2, fill="brown", outline="black",tags=("case",f"case_{j}_{i}"))
             caseXY[j].append((x1, y1, x2, y2))
         cpt2+=1
 
 
 def aff(M,event=None):
+    print(M)
     try: #on efface les cases s'ils elles existent
         canvas.delete("case")
     except: #sinon on ne lève pas d'erreur
@@ -207,11 +196,11 @@ def aff(M,event=None):
             for j in range(len(M[i])):
                 canvas.delete(f"case_{i}_{j}")
                 if M[i][j]==1:
-                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="white",outline="black",tags=("case",f"{i}{j}","black"))
+                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="white",outline="black",tags=("case",f"{i}{j}","black","plateau"))
                 elif M[i][j]==0:
-                    canvas.create_rectangle(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="white",outline="black",tags=("case",f"{i}{j}"))
+                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="brown",outline="black",tags=("case",f"{i}{j}","plateau"))
                 else:
-                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="black",outline="black",tags=("case",f"{i}{j}","white"))
+                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="black",outline="black",tags=("case",f"{i}{j}","white","plateau"))
 
 def getCoord(i,j): #renvoie les coordonnées de la case (x,y)
     return caseXY[i][j]
@@ -268,7 +257,7 @@ def aff_selection(event): #crée un cercle de selection
         try:
             (i,j)=getCase(event)
             x1,y1,x2,y2=getCoord(i,j)
-            canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="red",width=2,tags=("selection"))
+            canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="red",width=2,tags=("selection","plateau"))
             canvas.tag_lower("selection", "case") #mise en arrière plan du cercle de selection afin d'éviter les conflits entre leave et enter, et éviter les plantages de tkinter
 
         except:
@@ -281,25 +270,47 @@ def supprimer_selection(event): # supprime le cercle de sélection s'il existe
         selected=False
         canvas.delete("selection")
 
+
 def createPos(event): #on crée les emplacements possibles
     possibilites=données.getPossibilites()
     indicei,indicej=getCase(event)
     for i in range(len(possibilites)):
         x,y=données.move(possibilites[i][1],possibilites[i][0],indicei,indicej,True)
         x1,y1,x2,y2=getCoord(y,x)
-        canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="orange",width=2,tags=("possibilites"))
+        canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="orange",fill="brown",width=2,tags=("possibilites","plateau"))
 
 def onClick(event): # creation du cercle de selection avec clique
-    canvas.delete("selection","possibilites")
-    (i, j) = getCase(event)
-    x1, y1, x2, y2 = getCoord(i, j)
-    canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="green", width=2, tags=("selectionClick"))
-    canvas.tag_lower("selectionClick","case")
-    données.addSelectBouleList(i,j)
-    createPos(event)
+    global nbselected
+    if nbselected<=2:
+        canvas.delete("selection","possibilites")
+        (i, j) = getCase(event)
+        x1, y1, x2, y2 = getCoord(i, j)
+        canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="green", width=2, tags=("selectionClick","plateau"))
+        canvas.tag_lower("selectionClick","case")
+        données.addSelectBouleList(i,j)
+        createPos(event)
+        nbselected+=1
+    else:
+        delOnClick(event)
+
+
+def askMove(event): #fait le liens avec les fontions de mouvement et la position de la boule
+
+    liste=données.getBouleList()
+    if len(liste) == 1:
+        print("yes")
+        x_initale,y_initiale=liste[0][1],liste[0][0]
+        y_final,x_final=getCase(event)
+        canvas.delete("plateau")
+        print(x_initale,y_initiale,x_final,y_final)
+        données.moveWithij(x_initale,y_initiale,x_final,y_final)
+        aff(données.getMatrice(),event)
+        données.resetBouleList()
 
 def delOnClick(event): #supression du cercle de selection avec clique
+    global nbselected
     try:
+        nbselected=0
         canvas.delete("selectionClick","possibilites")
         données.resetBouleList()
     except:
@@ -308,8 +319,9 @@ def delOnClick(event): #supression du cercle de selection avec clique
 def select_active(): #active la selection en survol autour des cases
     canvas.tag_bind("case","<Enter>",aff_selection)
     canvas.tag_bind("case","<Leave>",supprimer_selection)
+    canvas.tag_bind("possibilites", "<Button-1>", askMove)
     canvas.tag_bind("case","<Button-1>",onClick)
-    canvas.bind("<Button-3>",delOnClick)
+    canvas.bind("<Button-3>",delOnClick) # le clicque droit annule la selection du moment qu'il est fait au niveau du canvas
 
 
 def play():
@@ -354,7 +366,7 @@ def resolution_window(): #fenêtre de demande de résolution
     labtest = tk.Label(res,textvariable=choixVal)
 
     liste = ttk.Combobox(res,textvariable=choixVal, values=choix,state="readonly") # barre de séléction pour les résolutions
-    test = tk.Button(fen, text="test",command=lambda: aff(M))
+    test = tk.Button(fen, text="test",command=lambda: aff(données.getMatrice()))
     test2 = tk.Button(fen, text="play",command=lambda: play())
 
     test2.pack(side="left")
