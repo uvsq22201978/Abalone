@@ -14,15 +14,6 @@ global selected,selectedOnClick
 
 nbselected=0
 selectedOnClick=False
-"""[[-1, -1, -1, -1, -1],
-          [0, -1, -1, -1, -1, 0],
-         [0, 0, -1, -1, -1, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 1, 1, 1, 0, 0],
-           [0, 1, 1, 1, 1, 0],
-            [1, 1, 1, 1, 1]"""
 height=500
 width=500
 main_bg="#2C3E50"
@@ -185,7 +176,6 @@ def place_hole(canvas,points): # creation des emplacements des boules en fonctio
 
 
 def aff(M,event=None):
-    print(M)
     try: #on efface les cases s'ils elles existent
         canvas.delete("case")
     except: #sinon on ne lève pas d'erreur
@@ -211,7 +201,7 @@ def aff_pos(event):
 
 def emptygrid(): #vide la grille du jeu
     points = calculer_points_hexagone(width / 2, width / 2, width / 2.5, 90)
-    canvas.create_polygon(points, fill="blue")
+    canvas.create_polygon(points, fill="#582900")
     place_hole(canvas, points)
 
 def checkInCase(a,b): # verifie si on est bien dans une case
@@ -242,9 +232,9 @@ def mainCanvas(fen,longueur,largeur): # creation du plateau de jeu
     global canvas,height,width
     height=longueur
     width=largeur
-    canvas = tk.Canvas(fen,height=largeur,width=largeur,background="red")
+    canvas = tk.Canvas(fen,height=largeur,width=largeur,background="black")
     points=calculer_points_hexagone(largeur/2,largeur/2,largeur/2.5,90)
-    canvas.create_polygon(points,fill="blue")
+    canvas.create_polygon(points,fill="#582900")
     place_hole(canvas,points)
     canvas.pack()
 
@@ -273,39 +263,81 @@ def supprimer_selection(event): # supprime le cercle de sélection s'il existe
 
 def createPos(event): #on crée les emplacements possibles
     possibilites=données.getPossibilites()
-    indicei,indicej=getCase(event)
-    for i in range(len(possibilites)):
-        x,y=données.move(possibilites[i][1],possibilites[i][0],indicei,indicej,True)
-        x1,y1,x2,y2=getCoord(y,x)
-        canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="orange",fill="brown",width=2,tags=("possibilites","plateau"))
+    if len(données.getBouleList()) == 1:
+        for i in range(len(possibilites)):
+            indicei, indicej = getCase(event)
+            x,y=données.move(possibilites[i][1],possibilites[i][0],indicei,indicej,True)
+            x1,y1,x2,y2=getCoord(y,x)
+            canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="orange",fill="brown",width=2,tags=("possibilites","plateau"))
+    else:
+        for i in range(len(possibilites)):
+            for j in range(len(données.getBouleList())):
+                indicei,indicej=données.getBouleList()[j]
+                zone=données.getZone(indicei)
+                x,y = données.moveZ(possibilites[i][1],possibilites[i][0],zone)
+                print("x,y",y,x)
+                print()
+                print("indice",indicei,indicej)
+
+
+                if données.getMatrice()[indicei+y][indicej+x] != 1:
+                    x1, y1, x2, y2 = getCoord(y+indicei, x+indicej)
+                    canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="orange", fill="brown", width=2,tags=("possibilites", "plateau"))
 
 def onClick(event): # creation du cercle de selection avec clique
     global nbselected
-    if nbselected<=2:
-        canvas.delete("selection","possibilites")
-        (i, j) = getCase(event)
-        x1, y1, x2, y2 = getCoord(i, j)
-        canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="green", width=2, tags=("selectionClick","plateau"))
-        canvas.tag_lower("selectionClick","case")
-        données.addSelectBouleList(i,j)
-        createPos(event)
-        nbselected+=1
-    else:
-        delOnClick(event)
+    y,x=getCase(event)
+    if données.isBoule(y, x):
+        if nbselected<=2:
+            if nbselected==0:
+                canvas.delete("selection", "possibilites")
+                (i, j) = getCase(event)
+                x1, y1, x2, y2 = getCoord(i, j)
+                canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="green", width=2, tags=("selectionClick","plateau"))
+                canvas.tag_lower("selectionClick","case")
+                données.addSelectBouleList(i,j)
+                createPos(event)
+                nbselected+=1
+            elif nbselected==1:
+                canvas.delete("selection", "possibilites")
+                (i, j) = getCase(event)
+                if données.champsAction(données.selectBouleList[0][0],données.selectBouleList[0][1],i,j):
+                    x1, y1, x2, y2 = getCoord(i, j)
+                    canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="green", width=2, tags=("selectionClick","plateau"))
+                    canvas.tag_lower("selectionClick","case")
+                    données.addSelectBouleList(i,j)
+                    createPos(event)
+                    nbselected+=1
+                else:
+                    canvas.delete("selection", "possibilites")
+            elif nbselected==2:
+                canvas.delete("selection", "possibilites")
+                (i, j) = getCase(event)
+                if données.isSameDirection(i,j):
+                    x1, y1, x2, y2 = getCoord(i, j)
+                    canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="green", width=2,tags=("selectionClick", "plateau"))
+                    canvas.tag_lower("selectionClick", "case")
+                    données.addSelectBouleList(i, j)
+                    createPos(event)
+                    nbselected += 1
+                else:
+                    canvas.delete("selection", "possibilites")
+
+        else:
+            delOnClick(event)
 
 
 def askMove(event): #fait le liens avec les fontions de mouvement et la position de la boule
-
+    global nbselected
     liste=données.getBouleList()
     if len(liste) == 1:
-        print("yes")
         x_initale,y_initiale=liste[0][1],liste[0][0]
         y_final,x_final=getCase(event)
         canvas.delete("plateau")
-        print(x_initale,y_initiale,x_final,y_final)
         données.moveWithij(x_initale,y_initiale,x_final,y_final)
         aff(données.getMatrice(),event)
         données.resetBouleList()
+        nbselected=0
 
 def delOnClick(event): #supression du cercle de selection avec clique
     global nbselected
@@ -326,7 +358,6 @@ def select_active(): #active la selection en survol autour des cases
 
 def play():
     global turn
-    print("play")
     turn = random.randint(1,2)
     canvas.create_text(larg/2,long*0.1,text=f"joueur {turn} à toi de jouer")
     select_active()
@@ -340,42 +371,55 @@ def play():
 
 
 
-def resolution_window(): #fenêtre de demande de résolution
+def resolution_window(debbug=False): #fenêtre de demande de résolution
+    if not debbug:
 
-    def changeRes(): #met à jour la résolution de la fenêtre en fonction de la résolution sélectionnée
+        def changeRes(): #met à jour la résolution de la fenêtre en fonction de la résolution sélectionnée
+            global long, larg
+            long=int(choixVal.get().split("x")[0])
+            larg=int(choixVal.get().split("x")[1])
+            res.destroy()
+            fen.geometry(f"{choixVal.get()}")
+            mainCanvas(fen,int(choixVal.get().split("x")[1]),int(choixVal.get().split("x")[1]))
+
+
+
+        choix = ["1920x1080", "1280x720", "800x600", "640x480", "480x360", "320x240"]
+
+        res = tk.Toplevel() # on crée une fenêtre "fille"
+        res.geometry("300x150")
+        res.resizable(False,False)
+        choixVal = tk.StringVar()
+        choixVal.set(choix[1])
+
+
+        valide = tk.Button(res,text="valider",command=changeRes)
+        label =tk.Label(res,text="Choisissez une résolution :")
+        labtest = tk.Label(res,textvariable=choixVal)
+
+        liste = ttk.Combobox(res,textvariable=choixVal, values=choix,state="readonly") # barre de séléction pour les résolutions
+        test = tk.Button(fen, text="test",command=lambda: aff(données.getMatrice()))
+        test2 = tk.Button(fen, text="play",command=lambda: play())
+
+        test2.pack(side="left")
+        test.pack(side="right")
+        valide.pack(side="bottom")
+        label.pack(side="top")
+        liste.pack()
+        labtest.pack()
+        res.mainloop()
+    else:
         global long, larg
-        long=int(choixVal.get().split("x")[0])
-        larg=int(choixVal.get().split("x")[1])
-        res.destroy()
-        fen.geometry(f"{choixVal.get()}")
-        mainCanvas(fen,int(choixVal.get().split("x")[1]),int(choixVal.get().split("x")[1]))
+        def both():
+            aff(données.getMatrice())
+            play()
+        long = 1280
+        larg = 720
+        fen.geometry(f"1280x720")
 
-
-
-    choix = ["1920x1080", "1280x720", "800x600", "640x480", "480x360", "320x240"]
-
-    res = tk.Toplevel() # on crée une fenêtre "fille"
-    res.geometry("300x150")
-    res.resizable(False,False)
-    choixVal = tk.StringVar()
-    choixVal.set(choix[1])
-
-
-    valide = tk.Button(res,text="valider",command=changeRes)
-    label =tk.Label(res,text="Choisissez une résolution :")
-    labtest = tk.Label(res,textvariable=choixVal)
-
-    liste = ttk.Combobox(res,textvariable=choixVal, values=choix,state="readonly") # barre de séléction pour les résolutions
-    test = tk.Button(fen, text="test",command=lambda: aff(données.getMatrice()))
-    test2 = tk.Button(fen, text="play",command=lambda: play())
-
-    test2.pack(side="left")
-    test.pack(side="right")
-    valide.pack(side="bottom")
-    label.pack(side="top")
-    liste.pack()
-    labtest.pack()
-    res.mainloop()
+        test = tk.Button(fen, text="test", command=lambda: both())
+        test.pack(side="right")
+        mainCanvas(fen, 1280, 720)
 
 fen=tk.Tk()
 fen.configure(background=main_bg)
@@ -384,7 +428,7 @@ fen.resizable(False,False)
 fen.title("salut")
 
 #demarrage()
-resolution_window()
+resolution_window(True)
 
 
 
