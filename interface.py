@@ -270,17 +270,18 @@ def createPos(event): #on crée les emplacements possibles
             x1,y1,x2,y2=getCoord(y,x)
             canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="orange",fill="brown",width=2,tags=("possibilites","plateau"))
     else:
+        canvas.delete("possibilites")
         for i in range(len(possibilites)):
             for j in range(len(données.getBouleList())):
                 indicei,indicej=données.getBouleList()[j]
                 zone=données.getZone(indicei)
                 x,y = données.moveZ(possibilites[i][1],possibilites[i][0],zone)
-                print("x,y",y,x)
-                print()
-                print("indice",indicei,indicej)
+                #print("x,y",y,x)
+                #print()
+                #print("indice",indicei,indicej)
 
 
-                if données.getMatrice()[indicei+y][indicej+x] != 1:
+                if not (données.isOut(indicei+y,indicej+x)) and données.getMatrice()[indicei+y][indicej+x] != 1:
                     x1, y1, x2, y2 = getCoord(y+indicei, x+indicej)
                     canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="orange", fill="brown", width=2,tags=("possibilites", "plateau"))
 
@@ -338,6 +339,9 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
         aff(données.getMatrice(),event)
         données.resetBouleList()
         nbselected=0
+    else:
+        for i in range(len(liste)):
+            pass
 
 def delOnClick(event): #supression du cercle de selection avec clique
     global nbselected

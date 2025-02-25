@@ -1,3 +1,4 @@
+import math
 global M,selectBouleList,team,out,matrice
 selectBouleList=[]
 multi_possibilites=[]
@@ -220,7 +221,7 @@ def getBouleList():
     return selectBouleList
 
 def getPossibilites(): # permet d'obtenir la liste des mouvements possible pour une boule selectionnée
-    global possibilites,select_BouleList,multi_possibilites
+    global possibilites,selectBouleList,multi_possibilites
     if len(selectBouleList)==1:
         for i in range(-1,2):
             for j in range(-1,2):
@@ -241,35 +242,28 @@ def getPossibilites(): # permet d'obtenir la liste des mouvements possible pour 
                         zone = getZone(selectBouleList[a][0])
                         x, y = moveZ(j, i, zone)
                         if not (isOut(selectBouleList[a][1] + x, selectBouleList[a][0] + y)):
-                            if not (isBoule(selectBouleList[a][0], selectBouleList[a][1], x, y)):
+                            if (not (isBoule(selectBouleList[a][0], selectBouleList[a][1], x, y)) or ((selectBouleList[a][0]+y,selectBouleList[a][1]+x) in selectBouleList)):
                                 possibilites.append((i, j))
             multi_possibilites.append(possibilites)
-        y,x=getDirection(selectBouleList[0][1],selectBouleList[0][0],selectBouleList[1][1],selectBouleList[1][0])
-        ny,nx=getDirection(selectBouleList[1][1],selectBouleList[1][0],selectBouleList[0][1],selectBouleList[0][0])
-
-
-        if len(multi_possibilites)==3:
-            multi_possibilites[1].append((y, x))
-            multi_possibilites[1].append((-y, -x))
         print(multi_possibilites)
-
-        multi_possibilites[0].append((y,x))
-        multi_possibilites[0].append((ny,nx))
-        multi_possibilites[-1].append((ny,nx))
-        multi_possibilites[-1].append((y, x))
-
 
         possibilites=[]
-        print(multi_possibilites)
         for i in multi_possibilites[0]:
+            cpt=0 # on compte le nombre d'occurence des possibilités
             for j in range(1,len(multi_possibilites)):
                 if i in multi_possibilites[j] and i not in possibilites:
-                    possibilites.append(i)
+                    cpt+=1
+                    if cpt == len(multi_possibilites)-1:
+                        possibilites.append(i)
+        print(possibilites)
         return possibilites
     return possibilites
 
-def quickDirection(i,j):
-    zone=getZone(i)
+
+
+def quickDirection(i,j,y): # i,j correspond à la direction en langage naturel et y la position y de la case dans la matrice elle permet de determiner la zone:
+    zone=getZone(y)
+    print("putain :" ,i,j)
     x,y=moveZ(i,j,zone)
     return y,x
 
@@ -295,6 +289,15 @@ def getDirection(x,y,x2,y2): #obtenir la direction a partir des coordonnées de 
                     if (i + y, j + x) == (y2,x2):
                         return (a, b)
 
+def getAbsoluteDirection(x,y,x2,y2): #obtenir la direction a partir des coordonnées de deux boules
+        zone = getZone(y)
+        direction = (None, None)
+        for a in range(-1, 2):
+            for b in range(-1, 2):
+                if b != 0:
+                    j, i = moveZ(b, a, getZone(y))
+                    if (i + y, j + x) == (y2,x2):
+                        return (abs(a), abs(b))
 
 def sortBetween(): #permet de trier selectBouleList de sorte à ce que la boule qui se situe entre les deux autres corresponde au 2ème élément
     global selectBouleList
@@ -374,8 +377,8 @@ setMat([[-1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1],
           [0, -1, -1, -1, -1, -1, 0],
          [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, 0, 0],
-         [0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+         [0, 0, 0, 0, 0, 0, 0, 0],
           [0, 1, 1, 1, 1, 1, 0],
            [1, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1]])
