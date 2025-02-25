@@ -212,20 +212,12 @@ def checkInCase(a,b): # verifie si on est bien dans une case
     return False
 
 def getCase(event): #donne les indices des cases dans lesquelles on se situe avec une tolérance
-    toléranceLower=0.99
-    toléranceHigher=1.01
+    toléranceLower=0.98
+    toléranceHigher=1.02
     for i in range(len(caseXY)):
         for j in range(len(caseXY[i])):
             if caseXY[i][j][0]*toléranceLower <= event.x <= caseXY[i][j][2]*toléranceHigher and caseXY[i][j][1]*toléranceLower <= event.y <= caseXY[i][j][3]*toléranceHigher:
                 return (i,j)
-            else:
-
-                #print(caseXY)
-                #print(f"{caseXY[i][j][0]} <= {event.x} <= {caseXY[i][j][2]} and {caseXY[i][j][1]} <= {event.y} <= {caseXY[i][j][3]}")
-                #canvas.delete(f"case_{i}_{j}")
-                #x1, y1, x2, y2 = getCoord(i, j)
-                #canvas.create_oval(x1, y1, x2, y2, fill="black", outline="black", tags=("case", f"{i}{j}"))
-                pass
 
 
 def mainCanvas(fen,longueur,largeur): # creation du plateau de jeu
@@ -340,8 +332,38 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
         données.resetBouleList()
         nbselected=0
     else:
+        found = False
         for i in range(len(liste)):
-            pass
+            y_final,x_final=getCase(event)
+            for a in range(-1,2):
+                if found:
+                    break
+                for b in range(-1,2):
+                    if found:
+                        break
+                    if b!=0:
+                        yreal,xreal=données.moveZ(b,a,données.getZone(liste[i][0]))
+                        if (liste[i][0]+yreal,liste[i][1]+xreal) == (y_final,x_final):
+                            #print("lol",yreal,xreal)
+                            found=True
+                            direcy,direcx=b,a
+            if found:
+                break
+        for i in range(len(liste)):
+            print(direcy,direcx)
+            yreal, xreal = données.moveZ(direcy, direcx, données.getZone(liste[i][0]))
+            print(liste[i][0] + yreal, liste[i][1] + xreal)
+            données.moveWithij(liste[i][1], liste[i][0], liste[i][1] + xreal, liste[i][0] + yreal)
+        canvas.delete("plateau")
+        aff(données.getMatrice(), event)
+        données.resetBouleList()
+        nbselected = 0
+
+
+
+
+
+
 
 def delOnClick(event): #supression du cercle de selection avec clique
     global nbselected

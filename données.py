@@ -263,7 +263,6 @@ def getPossibilites(): # permet d'obtenir la liste des mouvements possible pour 
 
 def quickDirection(i,j,y): # i,j correspond à la direction en langage naturel et y la position y de la case dans la matrice elle permet de determiner la zone:
     zone=getZone(y)
-    print("putain :" ,i,j)
     x,y=moveZ(i,j,zone)
     return y,x
 
