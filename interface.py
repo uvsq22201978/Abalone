@@ -334,6 +334,7 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
         données.resetBouleList()
         nbselected=0
     else:
+        poss=données.possToShow()
         canvas.delete("plateau")
         found = False
         for i in range(len(liste)):
@@ -346,7 +347,7 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
                         break
                     if b!=0:
                         yreal,xreal=données.moveZ(a,b,données.getZone(liste[i][0]))
-                        if (liste[i][0]+yreal,liste[i][1]+xreal) == (y_final,x_final):
+                        if (liste[i][0]+yreal,liste[i][1]+xreal) == (y_final,x_final) and (a,b) in poss[i]:
                             #print("lol",yreal,xreal)
                             found=True
                             direcy,direcx=a,b

@@ -279,7 +279,6 @@ def possToShow(): # obtient la liste des possibilités a afficher pour chaque bo
                 if i in possibilites:
                     possibilitesShow[1].append(i)
     else:
-        print("ok")
         y, x = quickDirection(a, b, selectBouleList[0][0])
         if selectBouleList[0][0] + y == selectBouleList[1][0] and selectBouleList[0][1] + x == selectBouleList[1][1]:
             for i in gauche:
@@ -303,8 +302,13 @@ def isSameDirection(posy,posx):# observe si une boule se situe dans le même lig
         for h in range(len(selectBouleList)):
             zone=getZone(selectBouleList[h][0])
             a,b=moveZ(direction[0],direction[1],zone)
+            print(f"boule ({selectBouleList[h][0]},{selectBouleList[h][1]}) , real ({a},{b}) , pos ({posy},{posx}) , direction ({direction[0]},{direction[1]})")
             if (selectBouleList[h][0]+a == posy and selectBouleList[h][1]+b == posx) or (selectBouleList[h][0]-a == posy and selectBouleList[h][1]-b == posx):
                 return True
+            else:
+                a, b = moveZ(-direction[0], -direction[1], zone)
+                if (selectBouleList[h][0] + a == posy and selectBouleList[h][1] + b == posx) or (selectBouleList[h][0] - a == posy and selectBouleList[h][1] - b == posx):
+                    return True
     return False
 
 def getDirection(y,x,y2,x2): #obtenir la direction a partir des coordonnées de deux boules
