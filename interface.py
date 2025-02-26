@@ -12,8 +12,8 @@ import random
 global selected,selectedOnClick
 
 
-nbselected=0
-selectedOnClick=False
+nbselected=0 # nombre de boule en séléction
+selectedOnClick=False # click gauche définit a false
 height=500
 width=500
 main_bg="#2C3E50"
@@ -44,7 +44,7 @@ def defilCredit(canvas): #permet de gérer l'animation des crédits au moment du
 
 
 
-def logo(canvas): # affiche le logo
+def makeLogo(canvas): # affiche le logo
     canvas.create_polygon(250, 25, 325, 62, 325, 137, 250, 175, 175, 137, 175, 62, fill="#582900", outline="black",width=2, tag=['logo'])
     canvas.create_oval(225, 35, 275, 85, fill="white", tag=['logo'])
     canvas.create_oval(225, 115, 275, 165, fill="black", tag=['logo'])
@@ -67,7 +67,7 @@ def demarrage(): #lance le menu de démarrage
             start.config(state="normal")
 
 
-    def on_start(): #commande du bouton start
+    def commandStart(): #commande du bouton start
         global animStart
         bruitage = pygame.mixer.Sound("interface.mp3")
         bruitage.play()
@@ -75,7 +75,7 @@ def demarrage(): #lance le menu de démarrage
         animStart = False
         start.destroy()
         fen.after(1000,dem.destroy)
-        resolution_window()
+        resolutionWindow()
 
     def animeButton(x=250,y=350,sens=1): #permet de donner une animation type lévitation au bouton
         if animStart:
@@ -105,10 +105,10 @@ def demarrage(): #lance le menu de démarrage
         start.config(font=("Arial", 12, "bold"),pady=10,padx=20)
 
 
-    start = tk.Button(fen,state="disabled", text="Start", padx=20, pady=10, bg="#3498DB", fg="white", font=("Arial", 12, "bold"), bd=2,relief="raised", activebackground="#16A085", activeforeground="white", command=on_start)
+    start = tk.Button(fen,state="disabled", text="Start", padx=20, pady=10, bg="#3498DB", fg="white", font=("Arial", 12, "bold"), bd=2,relief="raised", activebackground="#16A085", activeforeground="white", command=commandStart)
     dem.create_window(250, 350, window=start,tag=['start'])
     apparitionCredit(height,width,dem,1)
-    logo(dem)
+    makeLogo(dem)
 
     dem.focus_set()
     start.bind("<Enter>",startBigger)
@@ -128,7 +128,7 @@ def calculer_points_hexagone(centre_x, centre_y, rayon, rotation=0): #fabricatio
         points.append((x, y))
     return points
 
-def place_hole(canvas,points): # creation des emplacements des boules en fonction de la taille du plateau (maxX,maxY)
+def placHole(canvas,points): # creation des emplacements des boules en fonction de la taille du plateau (maxX,maxY)
     global long,larg,caseXY
     caseXY=[[]for i in range(9)]
     occupationxEspace=0.5 #pourcentage d'espace alloué à l'espacement
@@ -202,7 +202,7 @@ def aff_pos(event):
 def emptygrid(): #vide la grille du jeu
     points = calculer_points_hexagone(width / 2, width / 2, width / 2.5, 90)
     canvas.create_polygon(points, fill="#582900")
-    place_hole(canvas, points)
+    placHole(canvas, points)
 
 def checkInCase(a,b): # verifie si on est bien dans une case
     for i in range(len(caseXY)):
@@ -227,7 +227,7 @@ def mainCanvas(fen,longueur,largeur): # creation du plateau de jeu
     canvas = tk.Canvas(fen,height=largeur,width=largeur,background="black")
     points=calculer_points_hexagone(largeur/2,largeur/2,largeur/2.5,90)
     canvas.create_polygon(points,fill="#582900")
-    place_hole(canvas,points)
+    placHole(canvas,points)
     canvas.pack()
 
 def aff_selection(event): #crée un cercle de selection
@@ -246,7 +246,7 @@ def aff_selection(event): #crée un cercle de selection
             pass
 
 
-def supprimer_selection(event): # supprime le cercle de sélection s'il existe
+def supprimerSelection(event): # supprime le cercle de sélection s'il existe
     global selected
     if selected:
         selected=False
@@ -258,7 +258,7 @@ def createPos(event): #on crée les emplacements possibles
     if len(données.getBouleList()) == 1:
         for i in range(len(possibilites)):
             indicei, indicej = getCase(event)
-            x,y=données.move(possibilites[i][1],possibilites[i][0],indicei,indicej,True)
+            y,x=données.move(possibilites[i][0],possibilites[i][1],indicei,indicej,True)
             x1,y1,x2,y2=getCoord(y,x)
             canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="orange",fill="brown",width=2,tags=("possibilites","plateau"))
     else:
@@ -267,7 +267,8 @@ def createPos(event): #on crée les emplacements possibles
             for j in range(len(données.getBouleList())):
                 indicei,indicej=données.getBouleList()[j]
                 zone=données.getZone(indicei)
-                x,y = données.moveZ(possibilites[i][1],possibilites[i][0],zone)
+                print(possibilites[i][0],possibilites[i][1])
+                y,x = données.moveZ(possibilites[i][0],possibilites[i][1],zone)
                 #print("x,y",y,x)
                 #print()
                 #print("indice",indicei,indicej)
@@ -324,10 +325,10 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
     global nbselected
     liste=données.getBouleList()
     if len(liste) == 1:
-        x_initale,y_initiale=liste[0][1],liste[0][0]
+        x_initiale,y_initiale=liste[0][1],liste[0][0]
         y_final,x_final=getCase(event)
         canvas.delete("plateau")
-        données.moveWithij(x_initale,y_initiale,x_final,y_final)
+        données.moveToij(y_initiale,x_initiale,y_final,x_final)
         aff(données.getMatrice(),event)
         données.resetBouleList()
         nbselected=0
@@ -342,18 +343,16 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
                     if found:
                         break
                     if b!=0:
-                        yreal,xreal=données.moveZ(b,a,données.getZone(liste[i][0]))
+                        yreal,xreal=données.moveZ(a,b,données.getZone(liste[i][0]))
                         if (liste[i][0]+yreal,liste[i][1]+xreal) == (y_final,x_final):
                             #print("lol",yreal,xreal)
                             found=True
-                            direcy,direcx=b,a
+                            direcy,direcx=a,b
             if found:
                 break
         for i in range(len(liste)):
-            print(direcy,direcx)
-            yreal, xreal = données.moveZ(direcy, direcx, données.getZone(liste[i][0]))
-            print(liste[i][0] + yreal, liste[i][1] + xreal)
-            données.moveWithij(liste[i][1], liste[i][0], liste[i][1] + xreal, liste[i][0] + yreal)
+            print("direc",direcy,direcx)
+            données.multiMove(direcy,direcx)
         canvas.delete("plateau")
         aff(données.getMatrice(), event)
         données.resetBouleList()
@@ -374,9 +373,9 @@ def delOnClick(event): #supression du cercle de selection avec clique
     except:
         pass
 
-def select_active(): #active la selection en survol autour des cases
+def selectActive(): #active la selection en survol autour des cases
     canvas.tag_bind("case","<Enter>",aff_selection)
-    canvas.tag_bind("case","<Leave>",supprimer_selection)
+    canvas.tag_bind("case","<Leave>",supprimerSelection)
     canvas.tag_bind("possibilites", "<Button-1>", askMove)
     canvas.tag_bind("case","<Button-1>",onClick)
     canvas.bind("<Button-3>",delOnClick) # le clicque droit annule la selection du moment qu'il est fait au niveau du canvas
@@ -386,7 +385,7 @@ def play():
     global turn
     turn = random.randint(1,2)
     canvas.create_text(larg/2,long*0.1,text=f"joueur {turn} à toi de jouer")
-    select_active()
+    selectActive()
     """while True:
 
         if turn==1:
@@ -397,7 +396,7 @@ def play():
 
 
 
-def resolution_window(debbug=False): #fenêtre de demande de résolution
+def resolutionWindow(debbug=False): #fenêtre de demande de résolution
     if not debbug:
 
         def changeRes(): #met à jour la résolution de la fenêtre en fonction de la résolution sélectionnée
@@ -454,7 +453,7 @@ fen.resizable(False,False)
 fen.title("salut")
 
 #demarrage()
-resolution_window(True)
+resolutionWindow(True)
 
 
 
