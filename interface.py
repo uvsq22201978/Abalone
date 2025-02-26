@@ -262,20 +262,21 @@ def createPos(event): #on crée les emplacements possibles
             x1,y1,x2,y2=getCoord(y,x)
             canvas.create_oval(x1-1,y1-1,x2+1,y2+1,outline="orange",fill="brown",width=2,tags=("possibilites","plateau"))
     else:
+        possibilites=données.possToShow()
+        print(possibilites)
+        print(données.getBouleList())
         canvas.delete("possibilites")
+        cpt=0
         for i in range(len(possibilites)):
-            for j in range(len(données.getBouleList())):
-                indicei,indicej=données.getBouleList()[j]
+            for j in range(len(possibilites[i])):
+                indicei,indicej=données.getBouleList()[i]
                 zone=données.getZone(indicei)
-                print(possibilites[i][0],possibilites[i][1])
-                y,x = données.moveZ(possibilites[i][0],possibilites[i][1],zone)
-                #print("x,y",y,x)
-                #print()
-                #print("indice",indicei,indicej)
-
-
-                if not (données.isOut(indicei+y,indicej+x)) and données.getMatrice()[indicei+y][indicej+x] != 1:
+                y,x = données.moveZ(possibilites[i][j][0],possibilites[i][j][1],zone)
+                cpt += 1
+                #print(possibilites[i][j][0]+indicei,possibilites[i][j][1]+indicej)
+                if données.getMatrice()[indicei+y][indicej+x] != 1:
                     x1, y1, x2, y2 = getCoord(y+indicei, x+indicej)
+                    #print(f"poss : {possibilites[i][j]}, coord : {y},{x} , boule : {données.getBouleList()[i]}")
                     canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="orange", fill="brown", width=2,tags=("possibilites", "plateau"))
 
 def onClick(event): # creation du cercle de selection avec clique
@@ -333,6 +334,7 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
         données.resetBouleList()
         nbselected=0
     else:
+        canvas.delete("plateau")
         found = False
         for i in range(len(liste)):
             y_final,x_final=getCase(event)
@@ -351,7 +353,7 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
             if found:
                 break
         for i in range(len(liste)):
-            print("direc",direcy,direcx)
+            #print("direc",direcy,direcx)
             données.multiMove(direcy,direcx)
         canvas.delete("plateau")
         aff(données.getMatrice(), event)

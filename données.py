@@ -49,20 +49,20 @@ def setOut(L): #définir la liste des boules qui sont hors jeu
 
 def moveToij(y1,x1,y2,x2): #déplace a partir des indices seulements
     global matrice
-    print(f"y1,x1 : {y1,x1} ,y2,x2 : {y2,x2}")
+    #print(f"y1,x1 : {y1,x1} ,y2,x2 : {y2,x2}")
     matrice[y1][x1], matrice[y2][x2] = matrice[y2][x2], matrice[y1][x1]
 
 
 def multiMove(directy,directx): #procède au déplacement d'un groupe de boules
     global selectBouleList
-    for i in range(len(selectBouleList)):
+    for i in range(len(selectBouleList)): #on set a 0 l'endroit ou se situe les boules avant déplacement
         y,x=selectBouleList[i]
         setindiceMat(y,x,0)
-    for i in range(len(selectBouleList)):
+    for i in range(len(selectBouleList)): #on set a 1/-1 le nouvel emplacement des boules
         y,x=selectBouleList[i]
-        print("y,x",y,x)
+        #print("y,x",y,x)
         realy,realx=quickDirection(directy,directx,selectBouleList[i][0])
-        print("real",realy,realx)
+        #print("real",realy,realx)
         setindiceMat(y+realy,x+realx,1)
 
 
@@ -213,6 +213,7 @@ def getBouleList():
 
 def getPossibilites(): # permet d'obtenir la liste des mouvements possible pour une boule selectionnée
     global possibilites,multi_possibilites
+    sortBetween()
     def uniPosi(boule,nb): #donne les possibilités pour une boule donnée
         possi=[]
         global selectBouleList
@@ -235,7 +236,6 @@ def getPossibilites(): # permet d'obtenir la liste des mouvements possible pour 
         #print(selectBouleList)
         multi_possibilites=[]
         possibilites = []
-        sortBetween()
         for a in range(len(selectBouleList)):
             possi=[]
             possi=uniPosi(selectBouleList[a],a)
@@ -250,10 +250,45 @@ def getPossibilites(): # permet d'obtenir la liste des mouvements possible pour 
                     cpt+=1
                     if cpt == len(multi_possibilites)-1:
                         possibilites.append(i)
-        #print("pas multi",possibilites)
+        print("pas multi",possibilites)
     return possibilites
 
 
+
+def possToShow(): # obtient la liste des possibilités a afficher pour chaque boules
+    global possibilites,selectBouleList
+    haut=[(1,1),(0,1),(0,-1),(1,-1)]
+    mid=[(0,1),(0,-1)]
+    bas=[(-1,1),(0,1),(0,-1),(-1,-1)]
+    gauche=[(0,-1),(1,-1),(-1,-1),(1,1),(-1,1)]
+    droite=[(0,1),(1,1),(-1,1),(1,-1),(-1,-1)]
+    possibilitesShow=[[] for i in range(len(selectBouleList))]
+    a,b=getAbsoluteDirection(selectBouleList[0][0],selectBouleList[0][1],selectBouleList[1][0],selectBouleList[1][1])
+    print("a,b : ",a,b)
+    if (a,b) != (0,1):
+        y,x=quickDirection(a,b,selectBouleList[0][0])
+        for i in bas:
+            if i in possibilites:
+                possibilitesShow[-1].append(i)
+        for i in haut:
+            if i in possibilites:
+                possibilitesShow[0].append(i)
+
+        if len(selectBouleList) == 3:
+            for i in mid:
+                if i in possibilites:
+                    possibilitesShow[1].append(i)
+    else:
+        print("ok")
+        y, x = quickDirection(a, b, selectBouleList[0][0])
+        if selectBouleList[0][0] + y == selectBouleList[1][0] and selectBouleList[0][1] + x == selectBouleList[1][1]:
+            for i in gauche:
+                if i in possibilites:
+                    possibilitesShow[0].append(i)
+            for i in droite:
+                if i in possibilites:
+                    possibilitesShow[-1].append(i)
+    return possibilitesShow
 
 def quickDirection(i,j,y): # i,j correspond à la direction en langage naturel et y la position y de la case dans la matrice elle permet de determiner la zone:
     zone=getZone(y)
@@ -286,22 +321,11 @@ def getAbsoluteDirection(y,x,y2,x2): #obtenir la direction a partir des coordonn
         a,b=getDirection(y,x,y2,x2)
         return (abs(a),abs(b))
 
-def sortBetween(): #permet de trier selectBouleList de sorte à ce que la boule qui se situe entre les deux autres corresponde au 2ème élément
-    global selectBouleList
-    if len(selectBouleList) == 3:
-        #print("test")
-        y,x=getDirection(selectBouleList[0][0],selectBouleList[0][1],selectBouleList[1][0],selectBouleList[1][1])
-        #print(y,x)
-        i0,j0 = selectBouleList[0][0],selectBouleList[0][1]
-        i1,j1 = selectBouleList[1][0],selectBouleList[1][1]
-        i2,j2 = selectBouleList[2][0],selectBouleList[2][1]
 
-        if ((i0+y,j0+x) == (i1,j1) or (i0-y,j0-x) == (i1,j1)) and ((i0+y,j0+x) == (i2,j2) or (i0-y,j0-x) == (i2,j2)):
-            selectBouleList[0],selectBouleList[1]=selectBouleList[1],selectBouleList[0]
-        elif ((i1+y,j1+x) == (i0,j0) or (i1-y,j1-x) == (i0,j0)) and ((i1+y,j1+x) == (i2,j2) or (i1-y,j1-x) == (i2,j2)):
-            selectBouleList[0],selectBouleList[1]=selectBouleList[1],selectBouleList[0]
-        elif ((i2+y,j2+x) == (i0,j0) or (i2-y,j2-x) == (i0,j0)) and ((i2+y,j2+x) == (i1,j1) or (i2-y,j2-x) == (i1,j1)):
-            selectBouleList[2],selectBouleList[1]=selectBouleList[1],selectBouleList[2]
+def sortBetween():  # permet de trier selectBouleList de sorte à ce que la boule qui se situe entre les deux autres corresponde au 2ème élément
+    global selectBouleList
+    if len(selectBouleList) >1:
+        selectBouleList.sort(key=lambda coord: (coord[0], coord[1])) #on tri les tuples par i prioritairement puis par j
 
 
 
