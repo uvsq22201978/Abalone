@@ -9,7 +9,7 @@ global M,selectBouleList,team,out,matrice
 selectBouleList=[]
 multi_possibilites=[]
 direction = [(-1,-1),(-1,1),(0,-1),(0,1),(1,-1),(1,1)]
-out=[[],[],[],[],[],[]]
+out=[[],[]]
 team=1
 
 def setMat(mat): #définit la matrice
@@ -41,7 +41,7 @@ def matNulle(): # creation de la grille vide du jeu
 
 def resetOut(): # remet à 0 la liste des boules hors jeu
     global out
-    out=[[],[],[],[],[],[]]
+    out=[[],[]]
 
 def setOut(L): #définir la liste des boules qui sont hors jeu
     global out
@@ -117,6 +117,7 @@ def moveZ(y,x,zone):
             return moveZ1(y,x)
         case -1:
             return moveZ2(y,x)
+    print("y,x : ",y,x,"i : ",zone)
 
 
 def isBoule(i,j,y=0,x=0): # Observe s'il y a une boule aux coordonées i,j de l'équipe "team"
@@ -137,7 +138,7 @@ def getMatrice():
     global matrice
     return matrice
 
-def getSumitoList(i,j,x,y): # Donne la liste des éléments dans la direction x,y à partir de la position i,j
+"""def getSumitoList(i,j,x,y): # Donne la liste des éléments dans la direction (non naturel) x,y à partir de la position i,j
     L=[]
     while True:
         if 0<=i<=8 and 0<=j<=(len(matrice[i])-1): #verifie si on est dans la grille
@@ -156,6 +157,29 @@ def getSumitoList(i,j,x,y): # Donne la liste des éléments dans la direction x,
 
         i+=y
         j+=x
+    return L"""
+
+
+def getSumitoList(i,j,y,x): # Donne la liste des éléments dans la direction x,y à partir de la position i,j
+    L=[]
+    while True:
+        if not isOut(i,j): #verifie si on est dans la grille
+            if matrice[i][j] != 0:# on ajoute toute type de boule a la liste
+                L.append((i,j,matrice[i][j]))
+
+            elif len(L) == 7: #si on a + de 6 boules + le cas on s'arrete
+                break
+
+            elif matrice[i][j]==0: # si on tombe sur une case vide on est dans le cas "empty"
+                L.append("empty")
+                break
+        elif isOut(i,j): # verifie si on est en dehors de la grille
+            L.append("out") #si on se retrouve en dehors de la grille on est dans le cas out
+            break
+        zone=getZone(i)
+        realy,realx = moveZ(y,x,zone)
+        i+=realy
+        j+=realx
     return L
 
 
@@ -166,17 +190,19 @@ def sumitoCheck(L): #verifie à partir de la sumitoList si un sumito est detect�
     team=L[0][2]
     if L[len(L)-1]!= "out" and L[len(L)-1]!="empty": # si on n'est dans le cas d'une ejection ou de déplacement de boule alors on retourne Faux
         return False
-    for i in range(len(L)-2):
+    for i in range(len(L)-1):
         if L[i][2]==1: #lorsque qu'une boule blanche est trouvée on actualise son compteur
             white+=1
         elif L[i][2]==-1: #lorsque qu'une boule noir est trouvée on actualise so compteur
             black+=1
         if (L[i][2]==-team) and L[i+1][2] == team: #si une boule de l'équipe emettrice du sumito se situe après une boule noir alors pas de sumito (règle à verifier)
             return False
-    if team == 1 and white>black: # si on l'équipe white est en superiorité numéique alors le sumito est confirmé dans le cas ou elle est l'emettrice de ce coup
+    if team == 1 and white>black and black != 0: # si on l'équipe white est en superiorité numéique alors le sumito est confirmé dans le cas ou elle est l'emettrice de ce coup
+        print("ah bon ?",white,black)
         return True
-    elif team == -1 and black>white: # si on l'équipe black est en superiorité numéique alors le sumito est confirmé dans le cas ou elle est l'emettrice de ce coup
+    elif team == -1 and black>white and white != 0: # si on l'équipe black est en superiorité numéique alors le sumito est confirmé dans le cas ou elle est l'emettrice de ce coup
         return True
+    return False
 
 
 
@@ -184,8 +210,7 @@ def getSumitoCase(L): #permet de savoir si une boule va être éjecté ou si c'e
     return L[len(L)-1]
 
 
-
-def sumito(i,j,y,x): # effectue les déplacement en cas de sumito
+"""def sumito(i,j,y,x): # effectue les déplacement en cas de sumito
     global matrice
     L=getSumitoList(i, j, y, x)
     if sumitoCheck(L): # verifie si on est dans un cas de sumito
@@ -196,7 +221,7 @@ def sumito(i,j,y,x): # effectue les déplacement en cas de sumito
                 a,b,c=L[-i]
                 a1,b1,c1=L[-(i+1)]
                 #print((a,b),(a1,b1))
-                matrice[a][b],matrice[a1][b1]=matrice[a1][b1],matrice[a][b] # décale les positions des boules en cas de out
+                matrice[a][b],matrice[a1][b1]=matrice[a1][b1],matrice[a][b] # décale les positions des boules en cas de out"""
 
 def addSelectBouleList(i,j):#on ajoute la boule séléctionné à la liste de boules sélectionnées
     global selectBouleList,possibilites
@@ -319,7 +344,7 @@ def getDirection(y,x,y2,x2): #obtenir la direction a partir des coordonnées de 
                 if b != 0:
                     i,j = moveZ(a, b, getZone(y))
                     if (i + y, j + x) == (y2,x2):
-                        return (a, b)
+                        return (a, b) #donne la direction naturelle
 
 def getAbsoluteDirection(y,x,y2,x2): #obtenir la direction a partir des coordonnées de deux boules
         a,b=getDirection(y,x,y2,x2)

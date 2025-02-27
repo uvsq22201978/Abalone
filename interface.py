@@ -278,6 +278,27 @@ def createPos(event): #on crée les emplacements possibles
                     x1, y1, x2, y2 = getCoord(y+indicei, x+indicej)
                     #print(f"poss : {possibilites[i][j]}, coord : {y},{x} , boule : {données.getBouleList()[i]}")
                     canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="orange", fill="brown", width=2,tags=("possibilites", "plateau"))
+        liste=données.getBouleList()
+        print("liste : ",liste)
+        y,x=données.getDirection(liste[0][0],liste[0][1],liste[1][0],liste[1][1])
+        L1 = données.getSumitoList(liste[-1][0],liste[-1][1],-y,-x)
+        L2 = données.getSumitoList(liste[0][0],liste[0][1],y,x)
+        print(L1)
+        print(L2)
+        print(données.sumitoCheck(L1))
+        print(données.sumitoCheck(L2))
+
+        if données.sumitoCheck(L1):
+            zone = données.getZone(liste[0][0])
+            realy, realx = données.moveZ(-y, -x, zone)
+            x1, y1, x2, y2 = getCoord(liste[0][0]+realy,liste[0][1]+realx)
+            canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="orange", fill="violet", width=2,tags=("sumito", "plateau"))
+
+        if données.sumitoCheck(L2):
+            zone = données.getZone(liste[-1][0])
+            realy, realx = données.moveZ(y, x, zone)
+            x1, y1, x2, y2 = getCoord(liste[-1][0] + realy, liste[-1][1] + realx)
+            canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="orange", fill="violet", width=2,tags=("sumito", "plateau"))
 
 def onClick(event): # creation du cercle de selection avec clique
     global nbselected
