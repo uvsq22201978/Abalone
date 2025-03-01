@@ -12,6 +12,15 @@ direction = [(-1,-1),(-1,1),(0,-1),(0,1),(1,-1),(1,1)]
 out=[[],[]]
 team=1
 
+
+def getTeam():
+    global team
+    return team
+
+def changeTeam():
+    global team
+    team=-team
+
 def setMat(mat): #définit la matrice
     global matrice
     matrice = mat
@@ -62,7 +71,7 @@ def multiMove(directy,directx): #procède au déplacement d'un groupe de boules
         #print("y,x",y,x)
         realy,realx=quickDirection(directy,directx,selectBouleList[i][0])
         #print("real",realy,realx)
-        setindiceMat(y+realy,x+realx,1)
+        setindiceMat(y+realy,x+realx,team)
 
 def multiSumitoMove(sumito_liste,directy,directx):#ejecte la dernière boule en procédant au déplacement, prens en parametre la sumito liste ains que la direction y et x
     global out

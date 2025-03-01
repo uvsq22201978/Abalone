@@ -303,7 +303,7 @@ def createPos(event): #on crée les emplacements possibles
 def onClick(event): # creation du cercle de selection avec clique
     global nbselected
     y,x=getCase(event)
-    if données.isBoule(y, x):
+    if données.isBoule(y, x) and données.getMatrice()[y][x] == données.getTeam():
         if nbselected<=2:
             if nbselected==0:
                 canvas.delete("selection", "possibilites")
@@ -381,6 +381,7 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
         aff(données.getMatrice(), event)
         données.resetBouleList()
         nbselected = 0
+    données.changeTeam()
 
 
 
@@ -388,6 +389,7 @@ def askSumitoMove(event):
     def move(L,y,x): #effectue le déplacement
         if données.sumitoCheck(L):
            données.multiSumitoMove(L,y,x)
+           données.changeTeam()
     liste=données.getBouleList()
     y, x = données.getDirection(liste[0][0], liste[0][1], liste[1][0], liste[1][1])
     L1 = données.getSumitoList(liste[-1][0], liste[-1][1], -y, -x)
@@ -421,13 +423,6 @@ def play():
     turn = random.randint(1,2)
     canvas.create_text(larg/2,long*0.1,text=f"joueur {turn} à toi de jouer")
     selectActive()
-    """while True:
-
-        if turn==1:
-            canvas.focus("white")
-            canvas.tag_bind()
-            pass
-"""
 
 
 
