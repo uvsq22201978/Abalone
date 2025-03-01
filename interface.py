@@ -384,8 +384,18 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
 
 
 
-
-
+def askSumitoMove(event):
+    def move(L,y,x): #effectue le déplacement
+        if données.sumitoCheck(L):
+           données.multiSumitoMove(L,y,x)
+    liste=données.getBouleList()
+    y, x = données.getDirection(liste[0][0], liste[0][1], liste[1][0], liste[1][1])
+    L1 = données.getSumitoList(liste[-1][0], liste[-1][1], -y, -x)
+    L2 = données.getSumitoList(liste[0][0], liste[0][1], y, x)
+    move(L1, -y, -x)
+    move(L2,y,x)
+    canvas.delete("sumito")
+    aff(données.getMatrice(),event)
 
 
 def delOnClick(event): #supression du cercle de selection avec clique
@@ -403,6 +413,7 @@ def selectActive(): #active la selection en survol autour des cases
     canvas.tag_bind("possibilites", "<Button-1>", askMove)
     canvas.tag_bind("case","<Button-1>",onClick)
     canvas.bind("<Button-3>",delOnClick) # le clicque droit annule la selection du moment qu'il est fait au niveau du canvas
+    canvas.tag_bind("sumito","<Button-1>",askSumitoMove)
 
 
 def play():

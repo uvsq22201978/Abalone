@@ -27,7 +27,6 @@ def afficheMat(matrice): #affiche la matrice dans la console sous la forme de gr
         print(" " * len(matrice[12-i]),matrice[i])
 
 
-
 def matNulle(): # creation de la grille vide du jeu
     global matrice
     matrice=[]
@@ -64,6 +63,24 @@ def multiMove(directy,directx): #procède au déplacement d'un groupe de boules
         realy,realx=quickDirection(directy,directx,selectBouleList[i][0])
         #print("real",realy,realx)
         setindiceMat(y+realy,x+realx,1)
+
+def multiSumitoMove(sumito_liste,directy,directx):#ejecte la dernière boule en procédant au déplacement, prens en parametre la sumito liste ains que la direction y et x
+    global out
+    if sumito_liste[-1] == "out":
+        sumito_liste=sumito_liste[:-1] # on retire le out
+        addOut(sumito_liste[-1][2]) #on ajoute la boule qui va être ejecté a la liste des boules éjéctées
+        sumito_liste.pop() # on supprime la boule qui a été éjéctée
+    else:
+        sumito_liste = sumito_liste[:-1]
+    for i in range(len(sumito_liste)):
+        y,x,z=sumito_liste[i]
+        setindiceMat(y,x,0)
+    for i in range(len(sumito_liste)):
+        y,x,z=sumito_liste[i]
+        realy,realx=quickDirection(directy,directx,sumito_liste[i][0])
+        setindiceMat(y+realy,x+realx,sumito_liste[-1][2])
+    multiMove(directy,directx)
+
 
 
 def move(y,x,i,j,select=False): # déplace la boule aux coordonnées i,j dans la direction x,y
@@ -138,28 +155,6 @@ def getMatrice():
     global matrice
     return matrice
 
-"""def getSumitoList(i,j,x,y): # Donne la liste des éléments dans la direction (non naturel) x,y à partir de la position i,j
-    L=[]
-    while True:
-        if 0<=i<=8 and 0<=j<=(len(matrice[i])-1): #verifie si on est dans la grille
-            if matrice[i][j] != 0:# on ajoute toute type de boule a la liste
-                L.append((i,j,matrice[i][j]))
-
-            elif len(L) == 7: #si on a + de 6 boules + le cas on s'arrete
-                break
-
-            elif matrice[i][j]==0: # si on tombe sur une case vide on est dans le cas "empty"
-                L.append("empty")
-                break
-        elif (i<0 or i > 8) or (j<0 or j>(len(matrice[i])-1)): # verifie si on est en dehors de la grille
-            L.append("out") #si on se retrouve en dehors de la grille on est dans le cas out
-            break
-
-        i+=y
-        j+=x
-    return L"""
-
-
 def getSumitoList(i,j,y,x): # Donne la liste des éléments dans la direction x,y à partir de la position i,j
     L=[]
     while True:
@@ -185,6 +180,7 @@ def getSumitoList(i,j,y,x): # Donne la liste des éléments dans la direction x,
 
 
 def sumitoCheck(L): #verifie à partir de la sumitoList si un sumito est detecté
+    global selectBouleList
     black=0
     white=0
     team=L[0][2]
@@ -197,10 +193,12 @@ def sumitoCheck(L): #verifie à partir de la sumitoList si un sumito est detect�
             black+=1
         if (L[i][2]==-team) and L[i+1][2] == team: #si une boule de l'équipe emettrice du sumito se situe après une boule noir alors pas de sumito (règle à verifier)
             return False
-    if team == 1 and white>black and black != 0: # si on l'équipe white est en superiorité numéique alors le sumito est confirmé dans le cas ou elle est l'emettrice de ce coup
+        if L[i][2] == team and ((L[i][0],L[i][1]) not in selectBouleList):
+            return False
+    if team == 1 and white>black and black != 0: # si on l'équipe white est en superiorité numérique alors le sumito est confirmé dans le cas ou elle est l'emettrice de ce coup
         print("ah bon ?",white,black)
         return True
-    elif team == -1 and black>white and white != 0: # si on l'équipe black est en superiorité numéique alors le sumito est confirmé dans le cas ou elle est l'emettrice de ce coup
+    elif team == -1 and black>white and white != 0: # si on l'équipe black est en superiorité numérique alors le sumito est confirmé dans le cas ou elle est l'emettrice de ce coup
         return True
     return False
 
@@ -208,20 +206,6 @@ def sumitoCheck(L): #verifie à partir de la sumitoList si un sumito est detect�
 
 def getSumitoCase(L): #permet de savoir si une boule va être éjecté ou si c'est un simple déplacement de plusieurs boules
     return L[len(L)-1]
-
-
-"""def sumito(i,j,y,x): # effectue les déplacement en cas de sumito
-    global matrice
-    L=getSumitoList(i, j, y, x)
-    if sumitoCheck(L): # verifie si on est dans un cas de sumito
-        if getSumitoCase(L) == "out": # cas out
-            addOut(y,x,L[0][2])
-            matrice[L[-2][0]][L[-2][1]]=0
-            for i in range(2,len(L)):
-                a,b,c=L[-i]
-                a1,b1,c1=L[-(i+1)]
-                #print((a,b),(a1,b1))
-                matrice[a][b],matrice[a1][b1]=matrice[a1][b1],matrice[a][b] # décale les positions des boules en cas de out"""
 
 def addSelectBouleList(i,j):#on ajoute la boule séléctionné à la liste de boules sélectionnées
     global selectBouleList,possibilites
@@ -387,16 +371,12 @@ def isOut(y,x): # vérifie si on est toujours dans la grille
 
 
 
-def addOut(y,x,couleur): #ajoute a une liste de liste les boules hors jeu
+def addOut(couleur): #ajoute a une liste de liste les boules hors jeu
     global out
-    if x<=0 and y<=0: #cas bas gauche
-        out.append(couleur)
-    elif x>=0 and y<=0: #cas bas droite
-        out.append(couleur)
-    elif x<0 and y>0: #cas haut gauche
-        out.append(couleur)
-    elif x>0 and y>0: #cas haut droite
-        out.append(couleur)
+    if couleur == 1:
+        out[0].append(couleur)
+    else:
+        out[1].append(couleur)
 
 
 def champsAction(i,j,i2,j2):# verifie si une boule est dans le champs d'action d'une autre boule
@@ -411,11 +391,6 @@ def champsAction(i,j,i2,j2):# verifie si une boule est dans le champs d'action d
                         return True
     return False
 
-        
-"""print(moveZ(1,0,-1))
-creativeMove(4,4)"""
-
-
 setMat([[-1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1],
           [0, -1, -1, -1, -1, -1, 0],
@@ -425,3 +400,4 @@ setMat([[-1, -1, -1, -1, -1],
           [0, 1, 1, 1, 1, 1, 0],
            [1, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1]])
+
