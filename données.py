@@ -359,7 +359,14 @@ def sortBetween():  # permet de trier selectBouleList de sorte à ce que la boul
         selectBouleList.sort(key=lambda coord: (coord[0], coord[1])) #on tri les tuples par i prioritairement puis par j
 
 
-
+def winCheck():
+    global out
+    if len(out[1]) == 6:
+        return -1
+    elif len(out[0]) == 6:
+        return 1
+    else:
+        return 0
 
 def isOut(y,x): # vérifie si on est toujours dans la grille
     if 0 <= y <= 8:

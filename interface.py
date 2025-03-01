@@ -178,22 +178,25 @@ def placHole(canvas,points): # creation des emplacements des boules en fonction 
 
 
 def affScore():
+    global larg,long,canvas
     score=données.getOut()
 
     espacementx, espacementy, taillexcarre, minX = getSizeBoule()
     minX -= (espacementx + taillexcarre) / 2
     y1 = (larg / 5.4) + -1.5 * (taillexcarre + espacementy)
     y2 = (larg / 5.4) + -1.5 * (taillexcarre + espacementy) + taillexcarre
+    for i in range(5,5-len(score[1]),-1): #affichage invérsé pour les boules noirs on part de droite vers la gauche
+        x1 = minX + (espacementx + taillexcarre) * i
+        x2 = minX + (espacementx + taillexcarre) * i + taillexcarre
+        canvas.create_oval(x1,y1,x2,y2,fill="white",outline="white",tag=("plateau","score"))
+        lableft.config(text="Score Noir : "+str(len(score[1])))
+    y1 = (larg / 5.4) + 9.5 * (taillexcarre + espacementy)
+    y2 = (larg / 5.4) + 9.5 * (taillexcarre + espacementy) + taillexcarre
     for i in range(len(score[0])):
         x1 = minX + (espacementx + taillexcarre) * i
         x2 = minX + (espacementx + taillexcarre) * i + taillexcarre
-        canvas.create_oval(x1,y1,x2,y2,fill="black",outline="white",tag=("plateau","score"))
-    y1 = (larg / 5.4) + 9.5 * (taillexcarre + espacementy)
-    y2 = (larg / 5.4) + 9.5 * (taillexcarre + espacementy) + taillexcarre
-    for i in range(len(score[1])):
-        x1 = minX + (espacementx + taillexcarre) * i
-        x2 = minX + (espacementx + taillexcarre) * i + taillexcarre
-        canvas.create_oval(x1, y1, x2, y2, fill="white", outline="white",tag=("plateau","score") )
+        canvas.create_oval(x1, y1, x2, y2, fill="black", outline="white",tag=("plateau","score") )
+        labright.config(text="Score Blanc : "+str(len(score[0])))
 
 def aff(M,event=None):
     try: #on efface les cases s'ils elles existent
@@ -204,13 +207,12 @@ def aff(M,event=None):
         emptygrid()
         for i in range(len(M)):
             for j in range(len(M[i])):
-                canvas.delete(f"case_{i}_{j}")
                 if M[i][j]==1:
-                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="white",outline="black",tags=("case",f"{i}{j}","black","plateau"))
+                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="white",outline="black",tags=("case","black","plateau"))
                 elif M[i][j]==0:
-                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="brown",outline="black",tags=("case",f"{i}{j}","plateau"))
+                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="brown",outline="black",tags=("case","plateau"))
                 else:
-                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="black",outline="black",tags=("case",f"{i}{j}","white","plateau"))
+                    canvas.create_oval(caseXY[i][j][0],caseXY[i][j][1],caseXY[i][j][2],caseXY[i][j][3],fill="black",outline="black",tags=("case","white","plateau"))
 
 def getCoord(i,j): #renvoie les coordonnées de la case (x,y)
     return caseXY[i][j]
@@ -238,16 +240,28 @@ def getCase(event): #donne les indices des cases dans lesquelles on se situe ave
         for j in range(len(caseXY[i])):
             if caseXY[i][j][0]*toléranceLower <= event.x <= caseXY[i][j][2]*toléranceHigher and caseXY[i][j][1]*toléranceLower <= event.y <= caseXY[i][j][3]*toléranceHigher:
                 return (i,j)
+    return (-1,-1)
 
 
 def mainCanvas(fen,longueur,largeur): # creation du plateau de jeu
-    global canvas,height,width
+    global canvas,height,width,labright,lableft
     height=longueur
     width=largeur
     canvas = tk.Canvas(fen,height=largeur,width=largeur,background="black")
     points=calculer_points_hexagone(largeur/2,largeur/2,largeur/2.5,90)
     canvas.create_polygon(points,fill="#582900")
     placHole(canvas,points)
+    frameright = tk.Frame(fen,bg="blue")
+    frameleft = tk.Frame(fen, bg="red")
+
+    labright = tk.Label(frameright,text="Score Blanc : 0")
+    lableft = tk.Label(frameleft,text="Score Noir : 0")
+    bt =tk.Button(frameright,text="Quitter",command=fen.destroy)
+    bt.pack(side="bottom",fill="both")
+    labright.pack(side="top")
+    lableft.pack(side="top")
+    frameright.pack(side="right",fill="both",expand=True)
+    frameleft.pack(side="left", fill="both", expand=True)
     canvas.pack()
 
 def aff_selection(event): #crée un cercle de selection
@@ -319,6 +333,11 @@ def createPos(event): #on crée les emplacements possibles
             realy, realx = données.moveZ(y, x, zone)
             x1, y1, x2, y2 = getCoord(liste[-1][0] + realy, liste[-1][1] + realx)
             canvas.create_oval(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline="orange", fill="violet", width=2,tags=("sumito", "plateau"))
+
+def checkClickOut(event):
+    y,x=getCase(event)
+    if données.isOut(y,x):
+        delOnClick(event)
 
 def onClick(event): # creation du cercle de selection avec clique
     global nbselected
@@ -406,26 +425,33 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
 
 
 def askSumitoMove(event):
+    global nbselected
     def move(L,y,x): #effectue le déplacement
         if données.sumitoCheck(L):
             données.multiSumitoMove(L,y,x)
             données.changeTeam()
             affScore()
+
+
     liste=données.getBouleList()
     y, x = données.getDirection(liste[0][0], liste[0][1], liste[1][0], liste[1][1])
     L1 = données.getSumitoList(liste[-1][0], liste[-1][1], -y, -x)
     L2 = données.getSumitoList(liste[0][0], liste[0][1], y, x)
     move(L1, -y, -x)
     move(L2,y,x)
-    canvas.delete("sumito")
+    données.resetBouleList()
+    nbselected = 0
+    canvas.delete("selectionClick", "possibilites", "sumito")
     aff(données.getMatrice(),event)
+    if données.winCheck() != 0:
+        winScreen(données.winCheck())
 
 
 def delOnClick(event): #supression du cercle de selection avec clique
     global nbselected
     try:
         nbselected=0
-        canvas.delete("selectionClick","possibilites")
+        canvas.delete("selectionClick","possibilites","sumito")
         données.resetBouleList()
     except:
         pass
@@ -437,20 +463,35 @@ def selectActive(): #active la selection en survol autour des cases
     canvas.tag_bind("case","<Button-1>",onClick)
     canvas.bind("<Button-3>",delOnClick) # le clicque droit annule la selection du moment qu'il est fait au niveau du canvas
     canvas.tag_bind("sumito","<Button-1>",askSumitoMove)
+    canvas.bind("<Button-1>",checkClickOut)
 
 
-def play():
-    global turn
-    turn = random.randint(1,2)
-    canvas.create_text(larg/2,long*0.1,text=f"joueur {turn} à toi de jouer")
-    selectActive()
+def winScreen(gagnant):
+    selectInactive()
+    if gagnant == 1:
+        joueur = "blancs"
+    else:
+        joueur = "noirs"
+    canvas.create_text(width / 2, height / 2, text=f"les {joueur} ont gagnés", font=("Comic Sans MS", int(width/15), "bold"),
+                       fill="green", justify="center")
 
+
+def selectInactive():
+    canvas.tag_unbind("case","<Enter>")
+    canvas.tag_unbind("case","<Leave>")
+    canvas.tag_unbind("possibilites", "<Button-1>")
+    canvas.tag_unbind("case","<Button-1>")
+    canvas.unbind("<Button-3>")
+    canvas.tag_unbind("sumito","<Button-1>")
+    canvas.unbind("<Button-1>")
 
 
 def resolutionWindow(debbug=False): #fenêtre de demande de résolution
+
     if not debbug:
 
         def changeRes(): #met à jour la résolution de la fenêtre en fonction de la résolution sélectionnée
+
             global long, larg
             long=int(choixVal.get().split("x")[0])
             larg=int(choixVal.get().split("x")[1])
@@ -458,7 +499,8 @@ def resolutionWindow(debbug=False): #fenêtre de demande de résolution
             fen.geometry(f"{choixVal.get()}")
             mainCanvas(fen,int(choixVal.get().split("x")[1]),int(choixVal.get().split("x")[1]))
 
-
+            aff(données.getMatrice())
+            play()
 
         choix = ["1920x1080", "1280x720", "800x600", "640x480", "480x360", "320x240"]
 
@@ -474,11 +516,7 @@ def resolutionWindow(debbug=False): #fenêtre de demande de résolution
         labtest = tk.Label(res,textvariable=choixVal)
 
         liste = ttk.Combobox(res,textvariable=choixVal, values=choix,state="readonly") # barre de séléction pour les résolutions
-        test = tk.Button(fen, text="test",command=lambda: aff(données.getMatrice()))
-        test2 = tk.Button(fen, text="play",command=lambda: play())
 
-        test2.pack(side="left")
-        test.pack(side="right")
         valide.pack(side="bottom")
         label.pack(side="top")
         liste.pack()
@@ -486,9 +524,6 @@ def resolutionWindow(debbug=False): #fenêtre de demande de résolution
         res.mainloop()
     else:
         global long, larg
-        def both():
-            aff(données.getMatrice())
-            play()
         long = 1280
         larg = 720
         fen.geometry(f"1280x720")
@@ -496,6 +531,13 @@ def resolutionWindow(debbug=False): #fenêtre de demande de résolution
         test = tk.Button(fen, text="test", command=lambda: both())
         test.pack(side="right")
         mainCanvas(fen, 1280, 720)
+        aff(données.getMatrice())
+        play()
+
+def play():
+    global turn
+    turn = random.randint(1,2)
+    selectActive()
 
 fen=tk.Tk()
 fen.configure(background=main_bg)
@@ -503,9 +545,8 @@ fen.geometry("500x500")
 fen.resizable(False,False)
 fen.title("salut")
 
-#demarrage()
-resolutionWindow(True)
-affScore()
+demarrage()
+#resolutionWindow(True)
 
 
 fen.mainloop()
