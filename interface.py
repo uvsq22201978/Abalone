@@ -128,52 +128,72 @@ def calculer_points_hexagone(centre_x, centre_y, rayon, rotation=0): #fabricatio
         points.append((x, y))
     return points
 
-def placHole(canvas,points): # creation des emplacements des boules en fonction de la taille du plateau (maxX,maxY)
-    global long,larg,caseXY
-    caseXY=[[]for i in range(9)]
-    occupationxEspace=0.5 #pourcentage d'espace alloué à l'espacement
-    occupationxCarre=0.5
-    Lminmax=[(points[3],points[4]),(points[2],points[5]),(points[1],points[0])] # contient le coordonnées min et max de x et y trié dans l'ordre et par couple (x,y)
-    cpt=0
-    minX=Lminmax[cpt][0][0]
-    maxX=Lminmax[cpt][1][0]
-    linesize=maxX-minX
+def getSizeBoule():
+    points = calculer_points_hexagone(width / 2, width / 2, width / 2.5, 90)
+    occupationxEspace = 0.5  # pourcentage d'espace alloué à l'espacement
+    occupationxCarre = 0.5  # pourcentage d'espace alloué aux formes
+    Lminmax = [(points[3], points[4]), (points[2], points[5]), (points[1], points[0])]  # contient le coordonnées min et max de x et y trié dans l'ordre et par couple (x,y)
+    minX = Lminmax[0][0][0]
+    maxX = Lminmax[0][1][0]
+    linesize = maxX - minX
 
     espacementx = occupationxEspace * (linesize / 4)
     taillexcarre = occupationxCarre * (linesize / 5)
 
+    Ymin = Lminmax[0][0][1]
+    Ymax = Lminmax[2][1][1]
+    linesizey = Ymax - Ymin
+    espacementy = linesizey / 20.78
+    return (espacementx, espacementy, taillexcarre,minX)
 
-    Ymin=Lminmax[0][0][1]
-    Ymax=Lminmax[2][1][1]
-    linesizey=Ymax-Ymin
-
-    espacementy=linesizey/20.78
+def placHole(canvas,points): # creation des emplacements des boules en fonction de la taille du plateau (maxX,maxY)
+    global long,larg,caseXY
+    caseXY=[[]for i in range(9)]
+    espacementx,espacementy,taillexcarre,minX=getSizeBoule()
 
     for j in range(5):
         y1 = (larg/5.4)+j*(taillexcarre+espacementy)
         y2 = (larg/5.4)+j*(taillexcarre+espacementy)+taillexcarre
         if j!=0: # décalage
-            minX-=(espacementx+taillexcarre)/2
+            minX-=(espacementx+taillexcarre)/2 # on décale de la moitié de la taille d'un cercle
 
         for i in range(5+j):
             x1=minX+(espacementx+taillexcarre)*i
             x2=minX+(espacementx+taillexcarre)*i+taillexcarre
             canvas.create_oval(x1,y1,x2,y2,fill="brown",outline="black",tags=("case",f"case_{j}_{i}"))
             caseXY[j].append((x1,y1,x2,y2))
-    cpt2 = 0
+    cpt = 0
     for j in range(5,9):
         y1 = (larg/5.4) + j * (taillexcarre + espacementy)
         y2 = (larg/5.4) + j * (taillexcarre + espacementy) + taillexcarre
         if j != 0:  # decalage
             minX += (espacementx + taillexcarre) / 2
 
-        for i in range((8-cpt2)):
+        for i in range((8-cpt)):
             x1 = minX + (espacementx + taillexcarre) * i
             x2 = minX + (espacementx + taillexcarre) * i + taillexcarre
             canvas.create_oval(x1, y1, x2, y2, fill="brown", outline="black",tags=("case",f"case_{j}_{i}"))
             caseXY[j].append((x1, y1, x2, y2))
-        cpt2+=1
+        cpt+=1
 
+
+def affScore():
+    score=données.getOut()
+
+    espacementx, espacementy, taillexcarre, minX = getSizeBoule()
+    minX -= (espacementx + taillexcarre) / 2
+    y1 = (larg / 5.4) + -1.5 * (taillexcarre + espacementy)
+    y2 = (larg / 5.4) + -1.5 * (taillexcarre + espacementy) + taillexcarre
+    for i in range(len(score[0])):
+        x1 = minX + (espacementx + taillexcarre) * i
+        x2 = minX + (espacementx + taillexcarre) * i + taillexcarre
+        canvas.create_oval(x1,y1,x2,y2,fill="black",outline="white",tag=("plateau","score"))
+    y1 = (larg / 5.4) + 9.5 * (taillexcarre + espacementy)
+    y2 = (larg / 5.4) + 9.5 * (taillexcarre + espacementy) + taillexcarre
+    for i in range(len(score[1])):
+        x1 = minX + (espacementx + taillexcarre) * i
+        x2 = minX + (espacementx + taillexcarre) * i + taillexcarre
+        canvas.create_oval(x1, y1, x2, y2, fill="white", outline="white",tag=("plateau","score") )
 
 def aff(M,event=None):
     try: #on efface les cases s'ils elles existent
@@ -388,8 +408,9 @@ def askMove(event): #fait le liens avec les fontions de mouvement et la position
 def askSumitoMove(event):
     def move(L,y,x): #effectue le déplacement
         if données.sumitoCheck(L):
-           données.multiSumitoMove(L,y,x)
-           données.changeTeam()
+            données.multiSumitoMove(L,y,x)
+            données.changeTeam()
+            affScore()
     liste=données.getBouleList()
     y, x = données.getDirection(liste[0][0], liste[0][1], liste[1][0], liste[1][1])
     L1 = données.getSumitoList(liste[-1][0], liste[-1][1], -y, -x)
@@ -484,7 +505,7 @@ fen.title("salut")
 
 #demarrage()
 resolutionWindow(True)
-
+affScore()
 
 
 fen.mainloop()

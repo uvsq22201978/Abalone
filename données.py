@@ -11,7 +11,15 @@ multi_possibilites=[]
 direction = [(-1,-1),(-1,1),(0,-1),(0,1),(1,-1),(1,1)]
 out=[[],[]]
 team=1
+def addOut(couleur): #ajoute a une liste de liste les boules hors jeu
+    global out
+    if couleur == -1:
+        out[0].append(couleur)
+    else:
+        out[1].append(couleur)
 
+def getOut():
+    return out
 
 def getTeam():
     global team
@@ -79,6 +87,7 @@ def multiSumitoMove(sumito_liste,directy,directx):#ejecte la dernière boule en 
         sumito_liste=sumito_liste[:-1] # on retire le out
         addOut(sumito_liste[-1][2]) #on ajoute la boule qui va être ejecté a la liste des boules éjéctées
         sumito_liste.pop() # on supprime la boule qui a été éjéctée
+        print(f"points blanc : {len(out[0])} points noir : {len(out[1])}")
     else:
         sumito_liste = sumito_liste[:-1]
     for i in range(len(sumito_liste)):
@@ -376,16 +385,6 @@ def isOut(y,x): # vérifie si on est toujours dans la grille
             case _:
                 return True
     return True
-
-
-
-
-def addOut(couleur): #ajoute a une liste de liste les boules hors jeu
-    global out
-    if couleur == 1:
-        out[0].append(couleur)
-    else:
-        out[1].append(couleur)
 
 
 def champsAction(i,j,i2,j2):# verifie si une boule est dans le champs d'action d'une autre boule
