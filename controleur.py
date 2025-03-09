@@ -13,7 +13,7 @@ def demarrage(): #lance le menu de démarrage
     global animStart
     animStart=True # statut de l'animation du bouton start #cette manip est inutile mais, si supprimée penser à modifier les appels aux variables respectives
     try:
-        pygame.mixer.music.load("../loop-menu.mp3")
+        pygame.mixer.music.load("loop-menu.mp3")
         pygame.mixer.music.play(loops=-1)
     except:
         pass

@@ -174,27 +174,52 @@ def getCase(event): #donne les indices des cases dans lesquelles on se situe ave
 
 def mainCanvas(fen,longueur,largeur): # creation du plateau de jeu
     global canvas,height,width,labright,lableft
+
+
+    messages=["Le saviez vous, cette banderole vous fera perdre de précieuses secondes","la raison pour laquelle cette banderole est présente c'est uniquement pour justifier d'une évolution entre deux rendus mais elle est pas cool quand même ?","Si vous trouvez un seul bug Gabriel s'engage à vous payer un repas","Si un joueur tappe sur C puis H puis T, il aura automatiquement gagné                                                          attendez... vous n'avez quand même pas essayé ?","Nous n'avons pas fait de glisser déposer à cause de l'inexistance de transparence des formes dans tkinter","là j'ai plus d'inspi","je pourrais perdre des heures à écrire tout et n'importe quoi"]
+    texte = (random.choice(messages))
+    vitesse, delai = int(longueur/320), int(longueur/106) #la vitesse correspond au nombre de pixel de déplacement a chaque tour de boucle, le delai correspond à la vitesse de répétition de la boucle en ms
     height=longueur
     width=largeur
+
+
+    def deplacer(canvas, text_item, vitesse, largeur, text_width, delai):
+        canvas.move(text_item, -vitesse, 0) # déplacement du text
+        x1, y1, x2, y2 = canvas.bbox(text_item)
+        if x2 < 0: # quand le texte est intégralement arrivé a gauche on recrée un texte à droite de l'écran
+            text_item = canvas.create_text(largeur, largeur // 20, text=random.choice(messages), anchor='w',fill="white",
+                                           font=("Arial", int(largeur/30), "bold"))
+            canvas.move(text_item, largeur + text_width, 0) # on fait en sorte que l'intégralité du texte soit bien hors de l'ecran
+
+        canvas.after(delai, deplacer, canvas, text_item, vitesse, largeur, text_width, delai)
+
+
     canvas = tk.Canvas(fen,height=largeur,width=largeur,background="black")
     points=calculer_points_hexagone(largeur/2,largeur/2,largeur/2.5,90)
     canvas.create_polygon(points,fill="#582900")
     placHole(canvas,points)
     frameright = tk.Frame(fen,bg=main_bg)
     frameleft = tk.Frame(fen, bg=main_bg)
+    text_item = canvas.create_text(largeur, largeur // 2, text=texte, anchor='w', font=("Arial", 20, "bold"))
+    canvas.update()
+    bbox = canvas.bbox(text_item)
+    text_width = bbox[2] - bbox[0]
 
+    deplacer(canvas, text_item, vitesse, largeur, text_width, delai)
 
     replay = tk.Button(frameright,text="rejouer",command=rejouer)
-    labright = tk.Label(frameright,text="Score Blanc : 0",bg=main_bg,font=("Comic Sans MS", int(width/30)))
-    lableft = tk.Label(frameleft,text="Score Noir : 0",bg=main_bg,font=("Comic Sans MS", int(width/30)))
+    labright = tk.Label(frameright,text="Score Blanc : 0",bg=main_bg,font=("Comic Sans MS", int(width/60)))
+    lableft = tk.Label(frameleft,text="Score Noir : 0",bg=main_bg,font=("Comic Sans MS", int(width/60)))
     bt =tk.Button(frameright,text="Quitter",command=fen.destroy)
     bt.pack(side="bottom",fill="both")
     replay.pack(side="bottom",fill="both")
-    labright.pack(side="top")
+    labright.pack(side="top", anchor="center")
     lableft.pack(side="top")
     frameright.pack(side="right",fill="both",expand=True)
-    frameleft.pack(side="left", fill="both", expand=True)
+    frameleft.pack(side="left",fill="both",expand=True)
     canvas.pack()
+
+
 
 def aff_selection(event): #crée un cercle de selection
     global selected
@@ -427,7 +452,7 @@ def resolutionWindow(debbug=False): #fenêtre de demande de résolution
             aff(getMatrice())
             play()
 
-        choix = ["1920x1080", "1280x720", "800x600", "640x480", "480x360", "320x240"]
+        choix = ["1920x1080", "1280x720", "800x600", "640x480", "480x360"]
 
         res = tk.Toplevel() # on crée une fenêtre "fille"
         res.geometry("300x150")
@@ -453,8 +478,6 @@ def resolutionWindow(debbug=False): #fenêtre de demande de résolution
         larg = 720
         fen.geometry(f"1280x720")
 
-        test = tk.Button(fen, text="test", command=lambda: both())
-        test.pack(side="right")
         mainCanvas(fen, 1280, 720)
         aff(getMatrice())
         play()
