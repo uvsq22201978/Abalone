@@ -29,10 +29,20 @@ def addOut(couleur): #ajoute a une liste de liste les boules hors jeu
 def getOut():
     global out
     return out
+def randTeam():
+    turn = random.randint(0,1)
+    if turn == 0:
+        return 1
+    else:
+        return -1
 
 def getTeam():
     global team
     return team
+
+def setTeam(t):
+    global team
+    team=t
 
 def changeTeam():
     global team

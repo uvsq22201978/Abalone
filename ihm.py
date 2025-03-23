@@ -1,4 +1,6 @@
+import random
 import tkinter
+from tkinter import Radiobutton
 
 from modele import *
 
@@ -176,7 +178,7 @@ def mainCanvas(fen,longueur,largeur): # creation du plateau de jeu
     global canvas,height,width,labright,lableft
 
 
-    messages=["Le saviez vous, cette banderole vous fera perdre de précieuses secondes","la raison pour laquelle cette banderole est présente c'est uniquement pour justifier d'une évolution entre deux rendus mais elle est pas cool quand même ?","Si vous trouvez un seul bug Gabriel s'engage à vous payer un repas","Si un joueur tappe sur C puis H puis T, il aura automatiquement gagné                                                          attendez... vous n'avez quand même pas essayé ?","Nous n'avons pas fait de glisser déposer à cause de l'inexistance de transparence des formes dans tkinter","là j'ai plus d'inspi","je pourrais perdre des heures à écrire tout et n'importe quoi"]
+    messages=["Vous pouvez suivre l'avancement du projet via ce lien : https://github.com/uvsq22201978/Abalone","Le saviez vous, cette banderole vous fera perdre de précieuses secondes","la raison pour laquelle cette banderole est présente c'est uniquement pour justifier d'une évolution entre deux rendus mais elle est pas cool quand même ?","Si vous trouvez un seul bug Gabriel s'engage à vous payer un repas","Si un joueur tappe sur C puis H puis T, il aura automatiquement gagné                                                                          attendez... vous n'avez quand même pas essayé ?","Nous n'avons pas fait de glisser déposer à cause de l'inexistance de transparence des formes dans tkinter","là j'ai plus d'inspi","je pourrais perdre des heures à écrire tout et n'importe quoi"]
     texte = (random.choice(messages))
     vitesse, delai = int(longueur/320), int(longueur/106) #la vitesse correspond au nombre de pixel de déplacement a chaque tour de boucle, le delai correspond à la vitesse de répétition de la boucle en ms
     height=longueur
@@ -437,7 +439,7 @@ def selectInactive():
 
 
 def resolutionWindow(debbug=False): #fenêtre de demande de résolution
-
+    global value
     if not debbug:
 
         def changeRes(): #met à jour la résolution de la fenêtre en fonction de la résolution sélectionnée
@@ -450,7 +452,11 @@ def resolutionWindow(debbug=False): #fenêtre de demande de résolution
             mainCanvas(fen,int(choixVal.get().split("x")[1]),int(choixVal.get().split("x")[1]))
 
             aff(getMatrice())
-            play()
+            print(value.get())
+            if int(value.get())==0:
+                randTurn()
+            else:
+                play()
 
         choix = ["1920x1080", "1280x720", "800x600", "640x480", "480x360"]
 
@@ -458,9 +464,15 @@ def resolutionWindow(debbug=False): #fenêtre de demande de résolution
         res.geometry("300x150")
         res.resizable(False,False)
         choixVal = tk.StringVar()
+        value = tk.StringVar()
+        value.set(1)
         choixVal.set(choix[1])
-
-
+        lab = tk.LabelFrame(res, text="êtes vous épileptique ?")
+        yes = Radiobutton(lab,text="Oui",variable=value,value=1)
+        non = Radiobutton(lab,text="Non",variable=value,value=0)
+        lab.pack()
+        yes.grid(row=0,column=0)
+        non.grid(row=0,column=1)
         valide = tk.Button(res,text="valider",command=changeRes)
         label =tk.Label(res,text="Choisissez une résolution :")
         labtest = tk.Label(res,textvariable=choixVal)
@@ -482,10 +494,32 @@ def resolutionWindow(debbug=False): #fenêtre de demande de résolution
         aff(getMatrice())
         play()
 
+
+def randTurn(delai=1000,r=0,color="white"):
+    canvas.delete("rand")
+    turn = randTeam()
+    pts = calculer_points_hexagone(width/2, width/2, width/4, r)
+    canvas.create_polygon(pts, fill=color, tag="rand")
+    if delai % 40 == 0:
+        if turn==1:
+            canvas.create_polygon(pts,fill="white",tag="rand")
+            color="white"
+        else:
+            canvas.create_polygon(pts,fill="black",tag="rand")
+            color="black"
+    if delai>0:
+        canvas.after(10, randTurn,delai-1, r+1,color)
+    if delai == 0:
+        setTeam(turn)
+        canvas.create_text(width / 2, height / 2,text=f"Tour de {color}",font=("Comic Sans MS",int(width/30)),fill="red",tag="rand")
+        canvas.after(1000, play)
+
+
 def play():
-    global turn
-    turn = random.randint(1,2)
+    canvas.delete("rand")
     selectActive()
+    if value.get()==1: #inactif
+        setTeam(1)
 
 def rejouer():
     delOnClick()
@@ -500,9 +534,13 @@ def rejouer():
             [1, 1, 1, 1, 1]])
     aff(getMatrice())
     resetScore()
+    if value.get()==0:
+        randTurn()
+    else:
+        randTurn()
+
 
 
 
 #resolutionWindow(True)
-
 
